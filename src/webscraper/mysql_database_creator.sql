@@ -12,6 +12,7 @@ CREATE TABLE county (
     current_roster	ENUM('yes','no'), # yes if jail provides complete roster of current inmates
     booking_list	ENUM('yes','no'), # yes if jail provides list of all recent bookings, no if only allows inmate name search
     release_dates	ENUM('yes','no'), # yes if jail provides release dates
+    race			ENUM('yes','no'), # yes if jail provides inmate race
     notes			VARCHAR(255)	  # user-friendly notes about each county
 ) ENGINE = InnoDB;
 

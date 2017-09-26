@@ -41,6 +41,8 @@ The 15 priority areas are
 ## How to run
 * *Initial code & documentation under construction*
 * Requires Python 3.6
+* Requires MySql server to be running
+* ```webscraper_main.py``` must be run with three command line args specifying your MySql server's ```username password host```, like ```root mypassword localhost:3306```
 * Database layout below
 
 ![ACLU of Georgia logo](img/database_eer_diagram.png)
