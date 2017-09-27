@@ -1,4 +1,4 @@
-cu# Current priorities
+# Current priorities
 
 Priority #1 is writing webscrapers for each county, so we can collect daily jail data and dump raw html to database.
 We can always work on ETL and visualization later, once we have a couple months of data.
