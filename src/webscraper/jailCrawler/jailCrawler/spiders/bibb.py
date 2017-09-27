@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import scrapy
 import csv
+import re
 from datetime import datetime
 
 class BibbSpider(scrapy.Spider):
@@ -31,19 +32,56 @@ class BibbSpider(scrapy.Spider):
         def extractExact(xpathSelector):
             return record.xpath(xpathSelector).extract_first()
 
+        def formatInmateName(initalName):
+            lastName = initalName.pop(0)
+            # Remove comma
+            initalName.pop(0)
+            firstName = initalName.pop(1)
+            middleName = ''.join(initalName).strip()
+            return {
+                'first': firstName,
+                'middle': middleName,
+                'last': lastName
+            }
+
+        def parseRaceSex(initalValue):
+            value = initalValue.split('/')
+            return {
+                'race': value[0].strip(),
+                'sex': value[1].strip()
+            }
+
         for record in response.css('table'):
-            jacketId = extract('./tr[2]')
-            if (jacketId):
+            inmateId = extract('./tr[2]')
+            if (inmateId):
+
+                inmateName = formatInmateName(
+                    re.findall(r'\s|,|[^,\s]+', extract('./tr[3]')))
+                raceSex = parseRaceSex(extract('./tr[4]'))
+
                 yield {
-                    'jacketId': jacketId,
-                    'name': extract('./tr[3]'),
-                    'race/sex': extract('./tr[4]'),
+                    'county_name': 'bibb',
+                    'timestamp': datetime.now(),
+                    'url': response.url,
+                    'inmate_id': inmateId,
+                    'inmate_lastname': inmateName['last'],
+                    'inmate_firstname': inmateName['first'],
+                    'inmate_middlename': inmateName['middle'],
+                    'inmate_sex': raceSex['sex'],
+                    'inmate_race': raceSex['race'],
+                    'inmate_age': '',
                     'dob': extract('./tr[5]'),
-                    'timeOfArrest': extract('./tr[8]'),
-                    'arrestAgency': extract('./tr[9]'),
-                    'currentStatus': extract('./tr[10]'),
-                    'bondAmount': extract('./tr[11]'),
-                    'timeReleased': extract('./tr[12]'),
-                    'charge': extractExact('./tr[13]//table/tr/td[1]/strong/text()'),
-                    'dateUpdated': datetime.now()
+                    'inmate_address': '',
+                    'booking_timestamp': extract('./tr[8]'),
+                    'release_timestamp': extract('./tr[12]'),
+                    'processing_numbers': '',
+                    'agency': extract('./tr[9]'),
+                    'facility': '',
+                    'charges': extractExact('./tr[13]//table/tr/td[1]/strong/text()'),
+                    'severity': '',
+                    'bond_amount': extract('./tr[11]'),
+                    'current_status': extract('./tr[10]'),
+                    'court_dates': '',
+                    'days_jailed': '',
+                    'other': ''
                 }
