@@ -15,6 +15,7 @@ But their bail reform project will be ongoing beyond then.
 * Each webscraper should output a CSV file.
 * **CSV name**: ```lowercase-county-name_yyyy_mm_dd_hh_mm_ss.csv```
 * Use [```csv.writer```](https://docs.python.org/3/library/csv.html#csv.writer) with the [default parameters](https://docs.python.org/3/library/csv.html#csv-fmt-params) so all scrapers handle commas within fields the same way.
+* Semicolons ```';'``` are separators within a field, like if an inmate has multiple charges. **To prevent a bug**, webscraper should replace text field ```';'``` with ```':'```.
 * One column header row, then one row per inmate. Include **all** inmates available when the site was scraped. Even if the same inmates were there yesterday - we'll handle that later.
 * Uppercase/lowercase is irrelevant, ETL code will probably lowercase everything.
 * We prefer as many columns scraped as possible. Who knows what :gem::gem::gem: we could mine? But if pressed for time, scrape the columns critical to [project goals](https://github.com/lahoffm/aclu-bail-reform/raw/master/docs/ACLU-Bail-Reform-One-pager.pdf).
