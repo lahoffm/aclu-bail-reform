@@ -44,8 +44,8 @@ class BibbSpider(scrapy.Spider):
                 'last': lastName
             }
 
-        def parseRaceSex(initalValue):
-            value = initalValue.split('/')
+        def parseRaceSex(input):
+            value = input.split('/')
             return {
                 'race': value[0].strip(),
                 'sex': value[1].strip()
