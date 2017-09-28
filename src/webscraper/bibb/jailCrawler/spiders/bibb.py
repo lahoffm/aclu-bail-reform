@@ -84,7 +84,7 @@ class BibbSpider(scrapy.Spider):
                     'inmate_sex': raceSex['sex'],
                     'inmate_race': raceSex['race'],
                     'inmate_age': calculateAge(yearOfBirth),
-                    'dob': yearOfBirth,
+                    'inmate_dob': yearOfBirth,
                     'inmate_address': inmateAddress,
                     'booking_timestamp': extract('./tr[8]'),
                     'release_timestamp': extract('./tr[12]'),
