@@ -25,7 +25,7 @@ But their bail reform project will be ongoing beyond then.
 
 Column name | Column description
 ------------ | -------------
-county_name | County name
+county_name | County name like ```'athens-clarke'```, ```'bibb'```
 timestamp | [Postgres timestamp format](https://www.postgresql.org/docs/9.1/static/datatype-datetime.html): ```'2004-10-19 10:23:54 EST'``` - when row was scraped. Can have same stamp for all the rows if more convenient.
 url | URL the row was scraped from
 inmate_id | Inmate ID number if county posts it. Maybe useful later to look up inmates' eventual outcome.
@@ -36,9 +36,9 @@ inmate_sex	| ```'m'/'f'```
 inmate_race	| ```'black'/'white'/'hispanic'``` etc.
 inmate_age | Age in years
 inmate_dob	| Date of birth, [Postgres timestamp format](https://www.postgresql.org/docs/9.1/static/datatype-datetime.html), ```'2004-10-19'```. Some counties only post year of birth.
-inmate_address | Address, including if they list no address. Useful later to see where arrests are clustering.
-booking_timestamp | [Postgres timestamp format](https://www.postgresql.org/docs/9.1/static/datatype-datetime.html), ```'2004-10-19 10:23:54 EST'``` - if county doesn't provide time, just insert date. If they just post arrest time, insert that, because booking would occur soon after that.
-release_timestamp | [Postgres timestamp format](https://www.postgresql.org/docs/9.1/static/datatype-datetime.html), ```'2004-10-19 10:23:54 EST'``` - only fill out if they list an inmate as released. This data could be in separate release records, listed side-by-side with the booking/roster/inmate-name records, or not listed at all. ETL code will decide for each county how to interpret absence of release date. If release date is posted as ```Estimated```, append ```'estimated'``` to timestamp.
+inmate_address | Address, including if they list no address. Useful later to see where arrests are clustering. Just insert how the county lists it, ETL code can parse it into standard format later.
+booking_timestamp | [Postgres timestamp format](https://www.postgresql.org/docs/9.1/static/datatype-datetime.html), ```'2004-10-19 10:23:54 EST'``` - if county doesn't post time, just insert date. If they just post arrest time, insert that, because booking would occur soon after that.
+release_timestamp | [Postgres timestamp format](https://www.postgresql.org/docs/9.1/static/datatype-datetime.html), ```'2004-10-19 10:23:54 EST'``` - only fill out if they list an inmate as released. If county doesn't post time, just insert date. This data could be in separate release records or listed side-by-side with the booking/roster/inmate-name records. ETL code will decide for each county how to interpret absence of release date. If release date is posted as ```Estimated```, append to timestamp like ```'2004-10-19 10:23:54 EST estimated'```.
 processing_numbers | Arrest/booking/case/docket IDs if county posts them. Prefix with brief description like ```'Police case #12345'``` or ```'Docket ID for charge 3: 12345'```. If multiple IDs available, separate with semicolons like with ```charge```. Maybe useful later to look up inmates' eventual outcome.
 agency | Arresting/booking agency, only if specifically listed. Could be useful to target policy advocacy if county has multiple agencies
 facility | Facility at which inmate is held. Leave blank if they don't post it, maybe county only has one jail. Could be useful for determining specific jails of interest.
