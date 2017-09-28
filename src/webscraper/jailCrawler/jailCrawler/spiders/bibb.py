@@ -51,13 +51,27 @@ class BibbSpider(scrapy.Spider):
                 'sex': value[1].strip()
             }
 
+        def parseAddress(input):
+            splitNewLines = input.split('<br>')
+            joinAddress = splitNewLines[1] + splitNewLines[2]
+            strippedAddress = joinAddress.replace('</strong>', '').strip()
+            return ' '.join(strippedAddress.split())
+
+        def calculateAge(yearOfBirth):
+            currentYear = datetime.now().year
+            return int(currentYear) - int(yearOfBirth)
+
         for record in response.css('table'):
             inmateId = extract('./tr[2]')
             if (inmateId):
-
                 inmateName = formatInmateName(
-                    re.findall(r'\s|,|[^,\s]+', extract('./tr[3]')))
+                    re.findall(r'\s|,|[^,\s]+', extract('./tr[3]'))
+                )
                 raceSex = parseRaceSex(extract('./tr[4]'))
+                inmateAddress = parseAddress(
+                    extractExact('./tr[3]/td[2]/strong')
+                )
+                yearOfBirth = extract('./tr[5]')
 
                 yield {
                     'county_name': 'bibb',
@@ -69,9 +83,9 @@ class BibbSpider(scrapy.Spider):
                     'inmate_middlename': inmateName['middle'],
                     'inmate_sex': raceSex['sex'],
                     'inmate_race': raceSex['race'],
-                    'inmate_age': '',
-                    'dob': extract('./tr[5]'),
-                    'inmate_address': '',
+                    'inmate_age': calculateAge(yearOfBirth),
+                    'dob': yearOfBirth,
+                    'inmate_address': inmateAddress,
                     'booking_timestamp': extract('./tr[8]'),
                     'release_timestamp': extract('./tr[12]'),
                     'processing_numbers': '',
