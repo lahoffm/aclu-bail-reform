@@ -26,15 +26,30 @@ If you are using a virtual environment, make sure it is activated for your termi
 3. The results will create a new CSV file named `bibb-output-<datetime>.csv` in the `output` folder.
 
 ### Results
-The resulting CSV includes the following columns:
-1. jacketId
-2. name
-3. race/sex
-4. dob
-5. timeOfArrest
-6. arrestAgency
-7. currentStatus
-8. bondAmount
-9. timeReleased
-10. charge
-11. dateUpdated
+[As per the specifications](https://github.com/lahoffm/aclu-bail-reform/blob/master/CONTRIBUTING.md#csv-columns-in-order), the resulting CSV includes the following columns:
+| Column Name     | Data Available
+|=================|===============|
+county_name       | ✓
+timestamp         | ✓
+url               | ✓
+inmate_id         | ✓
+inmate_lastname   | ✓
+inmate_firstname  | ✓
+inmate_middlename | ✓
+inmate_sex        | ✓
+inmate_race       | ✓
+inmate_age        | ✓
+inmate_dob        | Year Only
+inmate_address    | ✓
+booking_timestamp | ✓
+release_timestamp | ✓
+processing_numbers| ✗
+agency            | ✓
+facility          | ✗
+charges           | ✓
+severity          | ✗
+bond_amount       | ✓
+current_status    | ✓
+court_dates       | ✗
+days_jailed       | ✗
+other             | ✗
