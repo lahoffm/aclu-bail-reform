@@ -9,12 +9,4 @@ import scrapy
 
 
 class JailcrawlerItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    name = scrapy.Field()
-    jacketId = scrapy.Field()
-    race = scrapy.Field()
-    sex = scrapy.Field()
-    dob = scrapy.Field()
-    status = scrapy.Field()
-    last_updated = scrapy.Field(serializer=str)
+    pass
