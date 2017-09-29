@@ -1,14 +1,16 @@
-# Current priorities
+# Current priorities & timeline
 
 We are using **Python 3.6**.  
 
 Priority #1 is writing webscrapers for each county, so we can collect daily jail data and dump to database.
-We can always work on ETL and visualization later, once we have a couple months of data.
 
-# Project timeline
+**Current goal is to start daily data collection for 4 or more counties by November 1.**  
+  
+We can work on ETL and visualization later once we have some data.  
 
-ACLU said they will start lobbying at the next GA state legislative session starting Jan 2018. Ideally we would have something useful for them at that time.
-But their bail reform project will be ongoing beyond then.
+ACLU will lobby at next GA state legislative session starting Jan 2018. Ideally we will have something useful for them by then.
+But their bail reform project will be ongoing beyond then.  
+
 
 # CSV file format for webscrapers **(TENTATIVE - I welcome suggestions. Please submit pull request with your changes to this format)**
 
@@ -33,7 +35,7 @@ inmate_lastname | Last name
 inmate_firstname | First name
 inmate_middlename | Middle name or initial, if any
 inmate_sex	| ```'m'/'f'```
-inmate_race	| ```'black'/'white'/'hispanic'``` etc.
+inmate_race	| ```'black'/'white'/'hispanic'/'asian'/'middle-eastern'/'native-american'/'pacific-islander'```. Although someone's race/ethnicity is more complicated (and really shouldn't matter anyway) we will stick to the basic categories the counties designated. If you see a category not on this list, please inform us so we can add to the list.
 inmate_age | Age in years
 inmate_dob	| Date of birth, [Postgres timestamp format](https://www.postgresql.org/docs/9.1/static/datatype-datetime.html), ```'2004-10-19'```. Some counties only post year of birth.
 inmate_address | Address, including if they list no address. Useful later to see where arrests are clustering. Just insert how the county lists it, ETL code can parse it into standard format later.

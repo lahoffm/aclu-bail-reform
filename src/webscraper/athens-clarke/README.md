@@ -1,5 +1,6 @@
 # Webscraper for Athens-Clarke county, GA
 
-** Under construction **
+**Webscraper under construction**
 
-```webscraper_main.py``` must be run with three command line args specifying your PostgreSQL server's ```username password host```, like ```root mypassword localhost:5432```
+Outputs CSV file as specified in [CONTRIBUTING.md](https://github.com/lahoffm/aclu-bail-reform/blob/master/CONTRIBUTING.md)
+
