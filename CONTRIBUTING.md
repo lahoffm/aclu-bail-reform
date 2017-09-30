@@ -4,6 +4,8 @@ We are using **Python 3.6**.
 
 Priority #1 is writing webscrapers for each county, so we can collect daily jail data and dump to database.
 
+[Pick a county and start scraping!](https://github.com/lahoffm/aclu-bail-reform/issues)
+
 **Current goal is to start daily data collection for 4 or more counties by November 1.**  
   
 We can work on ETL and visualization later once we have some data.  
