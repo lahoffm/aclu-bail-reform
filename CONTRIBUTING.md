@@ -13,8 +13,8 @@ We are using **Python 3.6**.
 # CSV file format for webscrapers **(TENTATIVE - I welcome suggestions. Please submit pull request with your changes to this format)**
 
 * Each webscraper should output a CSV file.
-* **CSV name**: ```lowercase-county-name_yyyy_mm_dd_hh_mm_ss.csv```
-* Use [```csv.writer```](https://docs.python.org/3/library/csv.html#csv.writer) with the [default parameters](https://docs.python.org/3/library/csv.html#csv-fmt-params) so all scrapers handle commas within fields the same way.
+* **CSV name**: ```lowercase-county-name_optional-extra-identifier_yyyy_mm_dd_hh_mm_ss.csv```. The extra identifier is if it's better to make >1 CSV per scrape. For example, if the jail has separate "last 14 day arrests" and "last 14 day releases" it's better to put in 2 CSVs and let ETL code handle that.
+* Use [```csv.writer```](https://docs.python.org/3/library/csv.html#csv.writer) with the [default parameters](https://docs.python.org/3/library/csv.html#csv-fmt-params) so all scrapers handle commas within fields the same way. Line terminator doesn't matter (```\r```, ```\n``` or ```\r\n```)
 * Semicolons ```';'``` are separators within a field, like if an inmate has multiple charges. **To prevent a bug**, webscraper should replace text field ```';'``` with ```':'```.
 * One column header row, then one row per inmate. Include **all** inmates available when the site was scraped. Even if the same inmates were there yesterday - we'll handle that later.
 * Uppercase/lowercase is irrelevant, ETL code will probably lowercase everything.
@@ -34,7 +34,7 @@ inmate_firstname | First name
 inmate_middlename | Middle name or initial, if any
 inmate_sex	| ```'m'/'f'```
 inmate_race	| ```'black'/'white'/'hispanic'/'asian'/'middle-eastern'/'native-american'/'pacific-islander'```. Although someone's race/ethnicity is more complicated (and really shouldn't matter anyway) we will stick to the basic categories the counties designated. If you see a category not on this list, please inform us so we can add to the list.
-inmate_age | Age in years
+inmate_age | Age in years. If ```inmate_dob``` only provides the year, just subtract birth year from current year.
 inmate_dob	| Date of birth, [Postgres timestamp format](https://www.postgresql.org/docs/9.1/static/datatype-datetime.html), ```'2004-10-19'```. Some counties only post year of birth.
 inmate_address | Address, including if they list no address. Useful later to see where arrests are clustering. Just insert how the county lists it, ETL code can parse it into standard format later.
 booking_timestamp | [Postgres timestamp format](https://www.postgresql.org/docs/9.1/static/datatype-datetime.html), ```'2004-10-19 10:23:54 EST'``` - if county doesn't post time, just insert date. If they just post arrest time, insert that, because booking would occur soon after that.
@@ -49,3 +49,4 @@ current_status | Current status for each charge. For example, Columbia county po
 court_dates | Next court dates, [Postgres timestamp format](https://www.postgresql.org/docs/9.1/static/datatype-datetime.html), ```'2004-10-19'```. If multiple dates, separate with semicolons and add descriptive text like ```'2004-10-19, charge 1;2004-10-22, charge 2'```. Eventually this can help determine how long someone sat in jail before court appearance, if roster data shows they were never released on bail.
 days_jailed | Days in custody as of ```timestamp```. Some counties explicitly post this. Otherwise, keep blank and let ETL code try to infer it from other information.
 other | Any other data you feel is potentially useful. Please let us know, maybe we'll add it to the CSV format in the future.
+notes | Auto-generated notes & error messages separated by semicolons. Use it to log unusual things about the row's data, like ```Inmate race not listed;Could not access inmate detail page, http error 404```
