@@ -11,6 +11,7 @@ t = time.time()
 athensclarke = ScraperAthensClarke(timeout=10, retries=3, sleep_sec=0)
 athensclarke.scrape_all()
 df = athensclarke.df
+
 elapsed = round(time.time() - t)
 
 print('Seconds elapsed: ' + str(elapsed) + ', minutes elapsed: ' + str(elapsed/60))
@@ -20,4 +21,3 @@ def v(my_df):
 def c(my_df, col):
     print(my_df[col].head(5))
     print(my_df[col].tail(5))
-
