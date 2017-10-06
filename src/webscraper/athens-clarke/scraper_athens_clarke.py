@@ -7,31 +7,44 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 
 class ScraperAthensClarke(object):
-    """Webscraper for Athens-Clarke county jail, GA"""
-       
-    def __init__(self, url, timeout=10, retries=0, sleep_sec=5):
-        self.url = url # entry URL from which to start scraping
+    """Webscraper for Athens-Clarke county jail, GA
+        This county has 2 main sites to scrape: their current inmate roster
+        and their arrests from the last 7 days (booking report).
+        They offer similar information, but the booking report also shows released
+        inmates, whether they posted bail / time served / recognizance / etc.,
+        court jurisdiction and warrant #s. Best to make 2 CSV files so we can
+        use the two info sources in different ways.
+    """
+    
+    def __init__(self, timeout=10, retries=0, sleep_sec=5):
+        self.url_roster = "http://enigma.athensclarkecounty.com/photo/jailcurrent.asp" # entry URL from which to start scraping current inmate roster
+        self.url_booking = "http://enigma.athensclarkecounty.com/photo/bookingreport.asp" # entry URL from which to start scraping "arrests from last 7 days"
         self.timeout = timeout # seconds timeout to avoid infinite waiting
         self.retries = retries # how many times to retry loading if there's http errors.
         self.sleep_sec = sleep_sec # seconds to wait between subpage requests to avoid overloading server
-        response = requests.head(url=self.url) # set user-agent so they can contact us if they don't like how we're scraping
+        response = requests.head(url=self.url_roster) # set user-agent so they can contact us if they don't like how we're scraping
         self.headers = {'User-Agent' : response.request.headers['User-Agent'] + ' (Contact lahoffm@gmail.com, https://github.com/lahoffm/aclu-bail-reform)'}
+        # there's also self.df, actually two separate dataframes. self.df created for inmate roster, dumped to file, recreated for booking report, dumped to file
         
     def scrape_all(self):
         """ Scrape main page then each inmate's subpage with more details.
             Assemble results into pandas dataframe in standard format and dump to CSV file."""
-        self.scrape_main()
-        self.scrape_sub()
-        self.dump()
+        #html_main = self.scrape_main_roster()
+        #self.scrape_sub(html_main)
+        #self.dump('current-inmate-roster')
+        
+        html_main = self.scrape_main_booking()
+        #self.scrape_sub(html_main)
+        #self.dump('booking-report')
 
-    def scrape_main(self):
-        """Get main page table into data frame formatted for the output CSV"""
+    def scrape_main_roster(self):
+        """Get main inmate roster table into data frame formatted for the output CSV"""
         
         # Get main page table into data frame
-        self.html_main, errormsg = self.get_page(self.url) # will be used to get subpage links
+        html_main, errormsg = self.get_page(self.url_roster) # will be used to get subpage links
         if errormsg is not None:
             raise requests.RequestException('Could not get main jail page. Error message: ' + errormsg)
-        df_list = pd.read_html(self.html_main, header=0, converters={'MID#': str,
+        df_list = pd.read_html(html_main, header=0, converters={'MID#': str,
                                                            'NAME': str,
                                                            'SEX': str,
                                                            'RACE': str,
@@ -82,7 +95,7 @@ class ScraperAthensClarke(object):
         # timestamp will be overwritten with subpage's timestamp unless we get HTTP errors
         self.df['county_name'] = 'athens-clarke'
         self.df['facility'] = 'Clarke County Jail' # only one jail in this county, apparently
-        self.df['url'] = self.url
+        self.df['url'] = self.url_roster
         self.df['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S EST')  # hardcoded EST because it's not critical to get the hour correct,
                                                                               # timestamps are just for knowing roughly when we scraped.
 
@@ -149,13 +162,18 @@ class ScraperAthensClarke(object):
         calc_age = lambda yyyy : str(datetime.now().year - int(yyyy))
         self.df['inmate_age'] = df_main['YEAR OF BIRTH'].apply(calc_age)
         
-    def scrape_sub(self):
+        return html_main
+        
+    def scrape_main_booking(self):
+        return None
+    
+    def scrape_sub(self, html_main):
         """ Scrape each inmate's details page - links from main page.
             Add data to the inmate's row in self.df.
             Retry self.retries times if there's any errors, then skip to next
             subpage. If subpage couldn't be loaded, log it in the "notes" field.
         """
-        soup = BeautifulSoup(self.html_main, 'lxml') # self.scrape_main() should be called before this
+        soup = BeautifulSoup(html_main, 'lxml')
         assert len(list(soup.find_all('a', href=True))) == self.df.shape[0], "Number of hrefs != number of table entries"
         self.df['notes'] = 'Failed to load inmate detail page. Leaving some fields blank' # will be erased ONLY when page successfully loads
         
@@ -167,7 +185,7 @@ class ScraperAthensClarke(object):
             #      'search', 'width=730,height=800,status=yes,resizable=yes,scrollbars=yes')">ABOYADE, OLUFEMI BABALOLA</a>
             i = i + 1
             print('Downloading subpage {0} of {1}...'.format(i, self.df.shape[0]))
-            subpage_url = self.url[0:self.url.rfind('/')+1] + a["onclick"].split(',')[0].split("'")[1]
+            subpage_url = self.url_roster[0:self.url_roster.rfind('/')+1] + a["onclick"].split(',')[0].split("'")[1]
             html_sub, errormsg = self.get_page(subpage_url)
             if errormsg is not None:
                 warn('Could not get URL "' + subpage_url + '" for subpage ' + str(i) + '. Error message: ' + errormsg + '. Continuing to next page')
@@ -196,7 +214,7 @@ class ScraperAthensClarke(object):
             
             # Use inmate id to find matching self.df row where we will insert data
             inmate_id = df_sub1.iloc[0,2][6:] # checked above that it starts with 'MID#: ' 
-            ix = self.df.index[self.df['inmate_id']==inmate_id] # checked in scrape_main that inmate IDs are all unique, so this will match 1 row
+            ix = self.df.index[self.df['inmate_id']==inmate_id] # checked in scrape_main_roster that inmate IDs are all unique, so this will match 1 row
             assert not self.df.loc[ix].empty, 'Inmate id "' + inmate_id + '" not found in main page'
             
             # Set URL
@@ -218,9 +236,9 @@ class ScraperAthensClarke(object):
             # Sometimes one "grade of charge" is NaN, means they are holding the inmate for some other county.
             # We still put in the same fields, but the "grade of charge" will be an empty string.
             df_sub2.fillna('', inplace=True) # important for later fields so semicolons go in right places
-            if any(df_sub2['GRADE OF CHARGE'] == 'L'): # don't know what 'L' means, it's not misdemeanor or felony
+            if any(df_sub2['GRADE OF CHARGE'] == 'L'): # 'L' means 'Local ordinance' but this is rare so ignoring it
                 df_sub2['GRADE OF CHARGE'] = df_sub2['GRADE OF CHARGE'].str.replace('L','')
-                warn("Unknown grade of charge 'L' for subpage " + str(i) + ". Replacing with ''")
+                warn("Grade of charge 'L' (local ordinance) for subpage " + str(i) + ". Replacing with ''")
 
             assert np.isin(df_sub2['GRADE OF CHARGE'].unique(), np.array(['M','F',''])).all(), 'Invalid misdemeanor/felony format.'
             df_sub2['GRADE OF CHARGE'] = df_sub2['GRADE OF CHARGE'].str.replace('M','misdemeanor')
@@ -252,8 +270,8 @@ class ScraperAthensClarke(object):
 
             time.sleep(self.sleep_sec)
     
-    def dump(self):
-        csv_fname = datetime.now().strftime('athens-clarke_current-inmate-roster_%Y_%m_%d_%H_%M_%S.csv')
+    def dump(self, fid):
+        csv_fname = datetime.now().strftime('athens-clarke_' + fid + '_%Y_%m_%d_%H_%M_%S.csv')
         csv_dir = '../../../data'
         self.df.to_csv(csv_dir + '/' + csv_fname, index=False, line_terminator='\n') # matches default params for csv.writer
         print('Wrote ' + csv_fname + ' to ' + csv_dir)
