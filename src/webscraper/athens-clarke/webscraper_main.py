@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 import time
+from warnings import warn
 
 t = time.time()
 athensclarke = ScraperAthensClarke(timeout=10, retries=3, sleep_sec=0)

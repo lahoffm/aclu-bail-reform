@@ -32,9 +32,9 @@ class ScraperAthensClarke(object):
     def scrape_all(self):
         """ Scrape main page then each inmate's subpage with more details.
             Assemble results into pandas dataframe in standard format and dump to CSV file."""
-        html_main = self.scrape_main_roster()
+        #html_main = self.scrape_main_roster()
         #self.scrape_sub(html_main)
-        self.dump('current-inmate-roster')
+        #self.dump('current-inmate-roster')
         
         html_main = self.scrape_main_booking()
         #self.scrape_sub(html_main)
@@ -72,7 +72,7 @@ class ScraperAthensClarke(object):
                 
         # Set inmate ID
         assert all(pd.notnull(df_main['MID#']))
-        assert df_main['MID#'].unique().size == df_main.shape[0], 'Non-unique inmate IDs' # check inmate IDs are unique so matching works in scrape_sub
+        assert df_main['MID#'].nunique() == df_main.shape[0], 'Non-unique inmate IDs' # check inmate IDs are unique so matching works in scrape_sub
         self.df['inmate_id'] = df_main['MID#']
 
         # Set inmate last/first/middle name.
@@ -172,7 +172,7 @@ class ScraperAthensClarke(object):
         self.df['release_timestamp'] = df_main["RELEASE TIME"].apply(convert_dt)
     
         # Set charge - at present, there's 1 row per charge but will split/apply/combine later so it's 1 row per inmate
-        assert all(pd.notnull(df_main['CHARGE']))
+        df_main['CHARGE'].fillna('', inplace=True) # this happens sometimes, probably as they are in process of updating a person's charge
         self.df['charges'] = df_main['CHARGE'].str.replace(';',':') # convert so we can later chain charges with ';'
     
         # Set charge severity - ignoring "Local ordinance" because it's rare
@@ -182,15 +182,11 @@ class ScraperAthensClarke(object):
         self.df['severity'] = df_main['CRIME TYPE']
         
         # Set court jurisdiction in 'other' field
-        self.df['other'] = pd.Series(['Court jurisdiction: ']*df_main.shape[0]).str.cat(df_main['COURT JURISDICTION'])
+        self.df['other'] = pd.Series(['Court jurisdiction: ']*df_main.shape[0]).str.cat(df_main['COURT JURISDICTION'].str.replace(';',':'))
         self.df.loc[self.df['other']=='Court jurisdiction: ','other'] = ''
         
         # Set bond_amount - will add to this when scraping subpages
-        # If bond amount is '$0.00', '$' or '' there will be no dollar amount starting the bond_amount field,
-        # just ' ' then the bond remarks / bond last updated.
-        df_main.loc[df_main['BOND AMOUNT']=='$0.00','BOND AMOUNT'] = '' # Usually indicates no bond, not "released without bond"
-        df_main.loc[df_main['BOND AMOUNT']=='$', 'BOND AMOUNT'] = '' # Sometimes this happens, not sure what it means
-        df_main['BOND AMOUNT'] = df_main['BOND AMOUNT'].str.replace(',','') # Replace $1,000.00 with $1000.00
+        self.format_bond_amount(df_main)
         df_main['BONDING COMPANY'] = df_main['BONDING COMPANY'].str.replace(';',':')
         self.df['bond_amount'] = df_main['BOND AMOUNT'].str.cat([["( Bonding company:"]*df_main.shape[0],\
                                                              df_main['BONDING COMPANY'],\
@@ -200,13 +196,20 @@ class ScraperAthensClarke(object):
         # Set case number & warrant number - see comments in scrape_main_roster()
         self.df['processing_numbers'] = 'Warrant # ' + df_main['WARRANT #'].str.replace(';',':')
         self.df.loc[self.df['processing_numbers']=='Warrant # ','processing_numbers'] = ''
-        tmp = ';Police case # ' + df_main['POLICE CASE#'].str.replace(';',':')
-        tmp[tmp==';Police case # '] = ';'
+        tmp = ',Police case # ' + df_main['POLICE CASE#'].str.replace(';',':')
+        tmp[tmp==',Police case # '] = ',' # split with ',' instead of ';' because each charge has its own warrant/case#
         self.df['processing_numbers'] = self.df['processing_numbers'].str.cat(tmp)
    
         # Set inmate age when we scraped the site
         self.set_inmate_age(df_main)
         
+        # Split/apply/combine
+        # On the main booking site they post multiple rows per inmate, one row per charge.
+        # This code compresses it into one row per inmate, as required for the csv specification
+        inmate_groups = self.df.groupby('inmate_id', sort=False, as_index=False) # each group = 1 inmate
+        self.df = inmate_groups.apply(self.compress_inmate_rows) # now each inmate (technically, each inmate_id) has one row with 1+ charges, etc.
+        self.df.reset_index(drop=True, inplace=True) # apply() returns it with multiindex we don't need
+
         return html_main
     
     
@@ -270,7 +273,7 @@ class ScraperAthensClarke(object):
             # Set agency
             assert all(pd.notnull(df_sub2['ARRESTING AGENCY'])), 'Invalid arresting agency format'
             try:
-                assert len(df_sub2['ARRESTING AGENCY'].unique())==1, 'Invalid arresting agency format'
+                assert df_sub2['ARRESTING AGENCY'].nunique()==1, 'Invalid arresting agency format'
             except AssertionError as e:
                  warn(str(e) + ", multiple arresting agencies for subpage " + str(i) + ". Inserting the agency that made the arrest for each charge")
                  df_sub2.loc[0, 'ARRESTING AGENCY'] = df_sub2['ARRESTING AGENCY'].str.cat(sep=';')
@@ -292,11 +295,7 @@ class ScraperAthensClarke(object):
             self.df.loc[ix,'charges'] = df_sub2['CHARGE DESCRIPTION'].str.replace(';',':').str.cat(sep=';')
 
             # Set bond amount for each charge, separated by ';'.
-            # If bond amount is '$0.00', '$' or '' there will be no dollar amount starting the bond_amount field,
-            # just ' ' then the bond remarks / bond last updated.
-            df_sub2.loc[df_sub2['BOND AMOUNT']=='$0.00','BOND AMOUNT'] = '' # Usually indicates no bond, not "released without bond"
-            df_sub2.loc[df_sub2['BOND AMOUNT']=='$', 'BOND AMOUNT'] = '' # Sometimes this happens, not sure what it means
-            df_sub2['BOND AMOUNT'] = df_sub2['BOND AMOUNT'].str.replace(',','') # Replace $1,000.00 with $1000.00
+            self.format_bond_amount(df_sub2)
             df_sub2['BOND REMARKS'] = df_sub2['BOND REMARKS'].str.replace(';',':')
             df_sub2['BOND LAST UPDATED'] = df_sub2['BOND LAST UPDATED'].str.replace(';',':')
             self.df.loc[ix,'bond_amount'] = df_sub2['BOND AMOUNT'].str.cat([df_sub2['BOND REMARKS'],
@@ -350,6 +349,16 @@ class ScraperAthensClarke(object):
  
     
     
+    def format_bond_amount(self, dataframe):
+        """ Formats a dollar string in dataframe column 
+            If bond amount is '$0.00', '$' or '' there will be no dollar amount starting the bond_amount field,
+            just ' ' then the bond remarks / bond last updated. """
+        dataframe.loc[dataframe['BOND AMOUNT']=='$0.00','BOND AMOUNT'] = '' # Usually indicates no bond, not "released without bond"
+        dataframe.loc[dataframe['BOND AMOUNT']=='$', 'BOND AMOUNT'] = '' # Sometimes this happens, not sure what it means
+        dataframe['BOND AMOUNT'] = dataframe['BOND AMOUNT'].str.replace(',','') # Replace $1,000.00 with $1000.00
+
+
+
     def set_inmate_name(self, df_main):
         """ Set inmate last/first/middlename. Assumes format is "lastname, firstname zero or more middle names" """
         assert all(pd.notnull(df_main['NAME']))
@@ -411,9 +420,47 @@ class ScraperAthensClarke(object):
         assert all(pd.notnull(df_main[booking_colname]))
         convert_dt = lambda dt : str(datetime.strptime(dt, "%m/%d/%Y %I:%M:%S %p")) + ' EST' # Format changes will likely be caught here
         self.df['booking_timestamp'] = df_main[booking_colname].apply(convert_dt)
+
+
+
+    def compress_inmate_rows(self, df_inmate):
+        """ Used with pandas groupby & apply methods.
+            df_inmate = self.df with only the rows for a single inmate.
+            This compresses them into a single row and returns the row"""
     
+        # Before compressing, check that rows are identical where they SHOULD be identical.
+        # For example, the inmate's last name should be identical for each row in this group
+        # (only checking rows obtained from main page data)
+        errmsg = '>1 unique values in group column'
+        assert df_inmate['inmate_lastname'].nunique()==1, errmsg
+        assert df_inmate['inmate_firstname'].nunique()==1, errmsg
+        assert df_inmate['inmate_middlename'].nunique()==1, errmsg
+        assert df_inmate['inmate_sex'].nunique()==1, errmsg
+        assert df_inmate['inmate_race'].nunique()==1, errmsg
+        assert df_inmate['inmate_age'].nunique()==1, errmsg
+        assert df_inmate['inmate_dob'].nunique()==1, errmsg
+        assert df_inmate['booking_timestamp'].nunique()==1, errmsg
     
+        # Copy it to avoid possible side effects
+        # See https://pandas.pydata.org/pandas-docs/stable/generated/pandas.core.groupby.GroupBy.apply.html
+        df_onerow = df_inmate.iloc[0,:].copy().to_frame().transpose()
     
+        # Set the fields that are allowed to have different entries (one entry per charge), separated by ';'
+        # Previous processing already replaced ';' in fields with ':'
+        df_onerow['release_timestamp'] = df_inmate['release_timestamp'].str.cat(sep=';')
+        df_onerow['processing_numbers'] = df_inmate['processing_numbers'].str.cat(sep=';')
+        if df_inmate['agency'].nunique()>1:
+            warn("Multiple arresting agencies for inmate ID " + df_onerow.loc[df_onerow.index[0],'inmate_id'] + ". Inserting the agency that made the arrest for each charge")
+            df_onerow['agency'] = df_inmate['agency'].str.cat(sep=';') # SHOULD be indented under if statement
+        df_onerow['charges'] = df_inmate['charges'].str.cat(sep=';')
+        df_onerow['severity'] = df_inmate['severity'].str.cat(sep=';')
+        df_onerow['bond_amount'] = df_inmate['bond_amount'].str.cat(sep=';')
+        df_onerow['other'] = df_inmate['other'].str.cat(sep=';')
+        
+        return df_onerow
+
+
+
     def dump(self, fid):
         """ dump to CSV """
         csv_fname = datetime.now().strftime('athens-clarke_' + fid + '_%Y_%m_%d_%H_%M_%S.csv')
