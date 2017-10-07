@@ -32,12 +32,13 @@ class ScraperAthensClarke(object):
     def scrape_all(self):
         """ Scrape main page then each inmate's subpage with more details.
             Assemble results into pandas dataframe in standard format and dump to CSV file."""
-        #html_main = self.scrape_main_roster()
-        #self.scrape_sub(html_main)
-        #self.dump('current-inmate-roster')
+            
+        html_main = self.scrape_main_roster() # current inmate roster
+        self.scrape_sub(html_main, 'roster')
+        self.dump('current-inmate-roster')
         
-        html_main = self.scrape_main_booking()
-        #self.scrape_sub(html_main)
+        html_main = self.scrape_main_booking() # recent bookings ("arrests last 7 days")
+        self.scrape_sub(html_main, 'booking')
         self.dump('booking-report')
 
 
@@ -142,7 +143,9 @@ class ScraperAthensClarke(object):
         # Set URL - will be overwritten with subpage's url unless we get HTTP errors
         self.df['url'] = self.url_booking
 
-        # Set inmate ID
+        # Set inmate ID --> the main booking page MID# differs from inmate detail page MID#, so this will be overwritten
+        # when scraping subpages. Will ultimately save subpage MID# because this is consistent with how "current roster"
+        # page does it. We need the main page MID# in this function to do split/apply/combine by inmate.
         assert all(pd.notnull(df_main['MID#'])) # Unlike for roster, not checking inmate IDs are unique
         self.df['inmate_id'] = df_main['MID#']
 
@@ -214,14 +217,20 @@ class ScraperAthensClarke(object):
     
     
     
-    def scrape_sub(self, html_main):
+    def scrape_sub(self, html_main, flag):
         """ Scrape each inmate's details page - links from main page.
             Add data to the inmate's row in self.df.
             Retry self.retries times if there's any errors, then skip to next
             subpage. If subpage couldn't be loaded, log it in the "notes" field.
+
+            flag: 'roster' or 'booking' to scrape differently based on what is on main page
         """
         soup = BeautifulSoup(html_main, 'lxml')
-        assert len(list(soup.find_all('a', href=True))) == self.df.shape[0], "Number of hrefs != number of table entries"
+        nlinks = len(list(soup.find_all('a', href=True)))
+        if flag=='roster':
+            assert nlinks == self.df.shape[0], "Number of hrefs != number of table entries"
+        else:
+            self.df['inmate_id'] = ''  # The booking page MID# differs from inmate detail MID#. We will use the subpage MID# for consistency with "current roster" page
         self.df['notes'] = 'Failed to load inmate detail page. Leaving some fields blank' # will be erased ONLY when page successfully loads
         
         i = 0
@@ -231,13 +240,16 @@ class ScraperAthensClarke(object):
             #      <a href="##" onclick="window.open('detailsNEW.asp?id=-59091&amp;bid=2017-00004550&amp;pg=1&amp;curr=yes',
             #      'search', 'width=730,height=800,status=yes,resizable=yes,scrollbars=yes')">ABOYADE, OLUFEMI BABALOLA</a>
             i = i + 1
-            print('Downloading subpage {0} of {1}...'.format(i, self.df.shape[0]))
-            subpage_url = self.url_roster[0:self.url_roster.rfind('/')+1] + a["onclick"].split(',')[0].split("'")[1]
+            print('Downloading subpage {0} of {1}...'.format(i, nlinks))
+            url_main = self.url_roster if flag=='roster' else self.url_booking
+            subpage_url = url_main[0:url_main.rfind('/')+1] + a["onclick"].split(',')[0].split("'")[1]
+            if any(self.df['url'].isin([subpage_url])): # already visited link - happens for booking site
+                continue
             html_sub, errormsg = self.get_page(subpage_url)
             if errormsg is not None:
                 warn('Could not get URL "' + subpage_url + '" for subpage ' + str(i) + '. Error message: ' + errormsg + '. Continuing to next page')
                 continue
-            
+  
             # Get subpage's 2 tables in dataframes
             try:
                 df_list = pd.read_html(html_sub, match="Name:", converters={0: str, 1: str, 2: str, 3: str})
@@ -247,8 +259,9 @@ class ScraperAthensClarke(object):
             assert len(df_list) == 1, "Should be only 1 table on page with matching text."
             df_sub1 = df_list[0]
             assert df_sub1.shape==(5,4), 'Wrong table dimensions'
-            if pd.isnull(df_sub1.loc[1,1]): df_sub1.loc[1,1]='' # for blank addresses
-            assert  df_sub1.iloc[0,0]=='Name:' and df_sub1.iloc[1,0]=='Address:' and df_sub1.iloc[2,0]=='Sex:'\
+            if pd.isnull(df_sub1.loc[1,1]): df_sub1.loc[1,1]='' # for blank addresses 
+            if pd.isnull(df_sub1.loc[2,3]): df_sub1.loc[2,3]='' # for blank races
+            assert df_sub1.iloc[0,0]=='Name:' and df_sub1.iloc[1,0]=='Address:' and df_sub1.iloc[2,0]=='Sex:'\
                 and df_sub1.iloc[3,0]=='Year of Birth:' and df_sub1.iloc[4,0]=='Booking Date/Time:' and pd.notnull(df_sub1.iloc[:,1]).all()\
                 and df_sub1.iloc[0,2].startswith('MID#: ') and pd.isnull(df_sub1.iloc[1,2]) and df_sub1.iloc[2,2]=='Race:'\
                 and df_sub1.iloc[3,2]=='Height/Weight:' and df_sub1.iloc[4,2]=='Released Date/Time:' and pd.isnull(df_sub1.iloc[0,3])\
@@ -259,52 +272,79 @@ class ScraperAthensClarke(object):
             assert all(df_sub2.columns==['ARRESTING AGENCY', 'GRADE OF CHARGE', 'CHARGE DESCRIPTION', 'BOND AMOUNT', 'BOND REMARKS', 'BOND LAST UPDATED', 'DISPOSITION']), 'Column names have changed'
             assert not df_sub2.empty, 'Table has zero rows'
             
-            # Use inmate id to find matching self.df row where we will insert data
-            inmate_id = df_sub1.iloc[0,2][6:] # checked above that it starts with 'MID#: ' 
-            ix = self.df.index[self.df['inmate_id']==inmate_id] # checked in scrape_main_roster that inmate IDs are all unique, so this will match 1 row
-            assert not self.df.loc[ix].empty, 'Inmate id "' + inmate_id + '" not found in main page'
+            inmate_id = df_sub1.iloc[0,2][6:] # checked above that it starts with 'MID#: '           
+            if flag=='roster':  # Use inmate id to find matching self.df row where we will insert data     
+                  ix = self.df.index[self.df['inmate_id']==inmate_id] # scrape_main_roster checked that inmate IDs are all unique, so this will match 1 row
+                  assert not self.df.loc[ix].empty, 'Inmate id "' + inmate_id + '" not found in main page'
+            else: # The booking page MID# differs from inmate detail MID#, so we have to match inmates other way
+                inmate_name = df_sub1.iloc[0,1]
+                booking_timestamp = self.convert_dt(df_sub1.iloc[4,1])
+                inmate_names = self.df['inmate_lastname'].str.cat([[', ']*self.df.shape[0], \
+                               self.df['inmate_firstname'], [' ']*self.df.shape[0], self.df['inmate_middlename']]).str.rstrip()
+                tmp = pd.DataFrame({'inmate_name':inmate_names,'booking_timestamp':self.df['booking_timestamp']})
+                ix = tmp.index[(tmp['inmate_name']==inmate_name) & (tmp['booking_timestamp']==booking_timestamp)]
+                assert len(ix) == 1, 'Should be exactly one matching inmate in main page'
             
             # Set URL
             self.df.loc[ix,'url'] = subpage_url
             
             # Set inmate address
             self.df.loc[ix, 'inmate_address'] = df_sub1.iloc[1,1]
-            
+
             # Set agency
-            assert all(pd.notnull(df_sub2['ARRESTING AGENCY'])), 'Invalid arresting agency format'
-            try:
-                assert df_sub2['ARRESTING AGENCY'].nunique()==1, 'Invalid arresting agency format'
-            except AssertionError as e:
-                 warn(str(e) + ", multiple arresting agencies for subpage " + str(i) + ". Inserting the agency that made the arrest for each charge")
-                 df_sub2.loc[0, 'ARRESTING AGENCY'] = df_sub2['ARRESTING AGENCY'].str.cat(sep=';')
-            self.df.loc[ix, 'agency'] = df_sub2.loc[0, 'ARRESTING AGENCY']                                   
+            if flag=='roster': # booking site had this in main page
+                assert all(pd.notnull(df_sub2['ARRESTING AGENCY'])), 'Invalid arresting agency format'
+                try:
+                    assert df_sub2['ARRESTING AGENCY'].nunique()==1, 'Invalid arresting agency format'
+                except AssertionError as e:
+                     warn(str(e) + ", multiple arresting agencies for subpage " + str(i) + ". Inserting the agency that made the arrest for each charge")
+                     df_sub2.loc[0, 'ARRESTING AGENCY'] = df_sub2['ARRESTING AGENCY'].str.cat(sep=';')
+                self.df.loc[ix, 'agency'] = df_sub2.loc[0, 'ARRESTING AGENCY']                                   
+            
+            df_sub2.fillna('', inplace=True) # important for later fields so semicolons go in right places
             
             # Set charge severity.
             # Sometimes one "grade of charge" is NaN, means they are holding the inmate for some other county.
             # We still put in the same fields, but the "grade of charge" will be an empty string.
-            df_sub2.fillna('', inplace=True) # important for later fields so semicolons go in right places
-            if any(df_sub2['GRADE OF CHARGE'] == 'L'): # 'L' means 'Local ordinance' but this is rare so ignoring it
-                df_sub2['GRADE OF CHARGE'] = df_sub2['GRADE OF CHARGE'].str.replace('L','')
-                warn("Grade of charge 'L' (local ordinance) for subpage " + str(i) + ". Replacing with ''")
-            assert np.isin(df_sub2['GRADE OF CHARGE'].unique(), np.array(['M','F',''])).all(), 'Invalid misdemeanor/felony format.'
-            df_sub2['GRADE OF CHARGE'] = df_sub2['GRADE OF CHARGE'].str.replace('M','misdemeanor').str.replace('F','felony')
-            self.df.loc[ix, 'severity'] = df_sub2['GRADE OF CHARGE'].str.cat(sep=';')
+            if flag=='roster': # booking site had this in main page
+                if any(df_sub2['GRADE OF CHARGE'] == 'L'): # 'L' means 'Local ordinance' but this is rare so ignoring it
+                    df_sub2['GRADE OF CHARGE'] = df_sub2['GRADE OF CHARGE'].str.replace('L','')
+                    warn("Grade of charge 'L' (local ordinance) for subpage " + str(i) + ". Replacing with ''")
+                assert np.isin(df_sub2['GRADE OF CHARGE'].unique(), np.array(['M','F',''])).all(), 'Invalid misdemeanor/felony format.'
+                df_sub2['GRADE OF CHARGE'] = df_sub2['GRADE OF CHARGE'].str.replace('M','misdemeanor').str.replace('F','felony')
+                self.df.loc[ix, 'severity'] = df_sub2['GRADE OF CHARGE'].str.cat(sep=';')
 
             # Set charges, separated by ';' even if charge description is empty string
             # Have to replace ';' with ':' first to prevent bug
-            self.df.loc[ix,'charges'] = df_sub2['CHARGE DESCRIPTION'].str.replace(';',':').str.cat(sep=';')
+            if flag=='roster': # booking site had this in main page
+                self.df.loc[ix,'charges'] = df_sub2['CHARGE DESCRIPTION'].str.replace(';',':').str.cat(sep=';')
 
             # Set bond amount for each charge, separated by ';'.
-            self.format_bond_amount(df_sub2)
-            df_sub2['BOND REMARKS'] = df_sub2['BOND REMARKS'].str.replace(';',':')
-            df_sub2['BOND LAST UPDATED'] = df_sub2['BOND LAST UPDATED'].str.replace(';',':')
-            self.df.loc[ix,'bond_amount'] = df_sub2['BOND AMOUNT'].str.cat([df_sub2['BOND REMARKS'],
-                                                                      [' Bond last updated']*df_sub2.shape[0],
-                                                                      df_sub2['BOND LAST UPDATED']],
-                                                                      sep=' ').str.cat(sep=';')
+            if flag=='roster': # booking site had this in main page
+                self.format_bond_amount(df_sub2)
+                df_sub2['BOND REMARKS'] = df_sub2['BOND REMARKS'].str.replace(';',':')
+                df_sub2['BOND LAST UPDATED'] = df_sub2['BOND LAST UPDATED'].str.replace(';',':')
+                self.df.loc[ix,'bond_amount'] = df_sub2['BOND AMOUNT'].str.cat([df_sub2['BOND REMARKS'],
+                                                                          [' Bond last updated']*df_sub2.shape[0],
+                                                                          df_sub2['BOND LAST UPDATED']],
+                                                                          sep=' ').str.cat(sep=';')
+            
+            # The reason this is not in bond_amount field
+            # is because sometimes we can't match up charges 1-1 with the charge on the main page.
+            # For example, sometimes several charges in main page turn into one charge in subpage.
+            # Note main page already gives bond amount and whether they posted bond.
+            if flag=='booking':
+                supp_str = pd.Series(['Supplemental bond info for charge ']*df_sub2.shape[0]).str.cat(
+                                                                 [df_sub2['CHARGE DESCRIPTION'],
+                                                                 [': bond remarks ']*df_sub2.shape[0],
+                                                                 df_sub2['BOND REMARKS'],
+                                                                 [', bond last updated ']*df_sub2.shape[0],
+                                                                 df_sub2['BOND LAST UPDATED']]).str.cat(sep=';')
+                self.df.loc[ix,'other'] = self.df.loc[ix,'other'].str.cat([supp_str], sep=' ||| ')        
 
             # Set status for each charge like 'SENTENCED'. For this site, most statuses are blank.
-            self.df.loc[ix, 'current_status'] = df_sub2['DISPOSITION'].str.replace(';',':').str.cat(sep=';')
+            if flag=='roster': # nb see comment above for why we don't do this for flag==booking
+                self.df.loc[ix, 'current_status'] = df_sub2['DISPOSITION'].str.replace(';',':').str.cat(sep=';')
                         
             # Set notes
             self.df.loc[ix,'notes'] = ''
@@ -418,8 +458,12 @@ class ScraperAthensClarke(object):
             See https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
             Outputs 'YYYY-MM-DD HH:MM:SS EST', see https://docs.python.org/3/library/datetime.html#datetime.datetime.__str__ """            
         assert all(pd.notnull(df_main[booking_colname]))
-        convert_dt = lambda dt : str(datetime.strptime(dt, "%m/%d/%Y %I:%M:%S %p")) + ' EST' # Format changes will likely be caught here
-        self.df['booking_timestamp'] = df_main[booking_colname].apply(convert_dt)
+        self.df['booking_timestamp'] = df_main[booking_colname].apply(self.convert_dt)
+
+
+
+    def convert_dt(self, dt):
+        return str(datetime.strptime(dt, "%m/%d/%Y %I:%M:%S %p")) + ' EST' # Format changes will likely be caught here
 
 
 
