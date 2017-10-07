@@ -272,8 +272,9 @@ class ScraperAthensClarke(object):
             assert all(df_sub2.columns==['ARRESTING AGENCY', 'GRADE OF CHARGE', 'CHARGE DESCRIPTION', 'BOND AMOUNT', 'BOND REMARKS', 'BOND LAST UPDATED', 'DISPOSITION']), 'Column names have changed'
             assert not df_sub2.empty, 'Table has zero rows'
             
+            # Find matching self.df row where we will insert data
             inmate_id = df_sub1.iloc[0,2][6:] # checked above that it starts with 'MID#: '           
-            if flag=='roster':  # Use inmate id to find matching self.df row where we will insert data     
+            if flag=='roster':  # Use inmate id to match
                   ix = self.df.index[self.df['inmate_id']==inmate_id] # scrape_main_roster checked that inmate IDs are all unique, so this will match 1 row
                   assert not self.df.loc[ix].empty, 'Inmate id "' + inmate_id + '" not found in main page'
             else: # The booking page MID# differs from inmate detail MID#, so we have to match inmates other way
@@ -284,12 +285,18 @@ class ScraperAthensClarke(object):
                 tmp = pd.DataFrame({'inmate_name':inmate_names,'booking_timestamp':self.df['booking_timestamp']})
                 ix = tmp.index[(tmp['inmate_name']==inmate_name) & (tmp['booking_timestamp']==booking_timestamp)]
                 assert len(ix) == 1, 'Should be exactly one matching inmate in main page'
-            
+
+            # Set inmate ID
+            if flag=='booking': # roster site has same inmate id on main page & subpage.
+                # booking site's inmate ids differ on main page & subpages but to be consistent
+                # with roster site, set it to subpage's inmate id.
+                self.df.loc[ix,'inmate_id'] = inmate_id
+                
             # Set URL
             self.df.loc[ix,'url'] = subpage_url
             
             # Set inmate address
-            self.df.loc[ix, 'inmate_address'] = df_sub1.iloc[1,1]
+            self.df.loc[ix, 'inmate_address'] = df_sub1.iloc[1,1]           
 
             # Set agency
             if flag=='roster': # booking site had this in main page
