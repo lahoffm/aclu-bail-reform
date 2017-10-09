@@ -1,6 +1,8 @@
 import requests
 import json
 import req_data
+import csv
+import datetime
 
 base_url = 'https://ody.dekalbcountyga.gov'
 
@@ -19,6 +21,7 @@ view_url = base_url + inmate['webIntents'][0]['uri']
 print(req_data.view_headers)
 
 inmate_dict = {
+  'county': 'dekalb',
   'inmate_type': inmate['type'],
   'booking_date': inmate['bookingDate'],
   'booking_number': inmate['bookingNumber'],
@@ -66,6 +69,46 @@ URI: {uri}
 
 print(message) 
 
+with open('dekalb.csv', 'w', newline='') as new_file:
+  fieldnames = [
+    'county_name',
+    'timestamp',
+    'url',
+    'inmate_id',
+    'inmate_lastname',
+    'inmate_firstname',
+    'inmate_middlename',
+    'inmate_sex',
+    'inmate_race',
+    'inmate_age',
+    'inmate_dob',
+    'inmate_address',
+    'booking_timestamp',
+    'release_timestamp',
+    'processing_numbers',
+    'agency',
+    'facility',
+    'charges',
+    'severity',
+    'bond_amount',
+    'current_status',
+    'court_dates',
+    'days_jailed',
+    'other',
+    'notes'
+  ]
+
+  csv_writer = csv.writer(new_file, delimiter=',')
+
+  csv_writer.writerow(fieldnames)
+
+  new_row = []
+
+  for key, value in inmate_dict.items():
+    new_row += [value]
+
+  csv_writer.writerow(new_row)
+  
 
 
 # JAIL SEARCH========================================
