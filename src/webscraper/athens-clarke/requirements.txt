@@ -1,0 +1,7 @@
+# Scraper runs under Python 3.6.3
+
+beautifulsoup4 >= 4.6.0 # import bs4
+lxml >= 3.8.0
+numpy >= 1.13.1
+pandas >= 0.20.3
+requests >= 2.18.4

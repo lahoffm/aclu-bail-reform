@@ -12,7 +12,7 @@ We are using **Python 3.6**.
 
 # CSV file format for webscrapers **(TENTATIVE - I welcome suggestions. Please submit pull request with your changes to this format)**
 
-* Each webscraper should output a CSV file.
+* Each webscraper should output a CSV file into [```data``` folder](https://github.com/lahoffm/aclu-bail-reform/tree/master/data)
 * **CSV name**: ```lowercase-county-name_optional-extra-identifier_yyyy_mm_dd_hh_mm_ss.csv```. The extra identifier is if it's better to make >1 CSV per scrape. For example, if the jail has separate "last 14 day arrests" and "last 14 day releases" it's better to put in 2 CSVs and let ETL code handle that.
 * Use [```csv.writer```](https://docs.python.org/3/library/csv.html#csv.writer) with the [default parameters](https://docs.python.org/3/library/csv.html#csv-fmt-params) so all scrapers handle commas within fields the same way. Line terminator doesn't matter (```\r```, ```\n``` or ```\r\n```)
 * <a name="semicolon_behavior">Semicolons</a> ```';'``` are separators within a field, like if an inmate has multiple charges.
