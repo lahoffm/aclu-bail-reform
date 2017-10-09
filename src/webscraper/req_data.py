@@ -14,8 +14,8 @@ search_payload = {
   "@odata.context":"https://it-odyint-wp2.dcg.dekalb.loc/app/JailSearchService/$metadata#search/$entity",
   "@odata.editLink":"http://search/fake",
   "Id":"0","queryString":"dkso",
-  "from":340,
-  "size":1,
+  "from":0,
+  "size":10,
   "facets":
     [
       {

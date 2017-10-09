@@ -2,6 +2,7 @@ import requests
 import json
 import req_data
 import csv
+from nameparser import HumanName
 import datetime
 
 base_url = 'https://ody.dekalbcountyga.gov'
@@ -12,103 +13,99 @@ req_post = requests.post(search_url, json=req_data.search_payload, headers=req_d
 
 data = req_post.json()
 
-inmate_list = data['searchResult']['hits']
+inmate_data = list(data['searchResult']['hits'])
 
-inmate = inmate_list[0]
+# print(json.dumps(inmate_list, indent=2))
 
-view_url = base_url + inmate['webIntents'][0]['uri']
+inmate_list = []
 
-print(req_data.view_headers)
+for inmate in inmate_data:
+  name = HumanName(inmate['defendantName'])
 
-inmate_dict = {
-  'county': 'dekalb',
-  'inmate_type': inmate['type'],
-  'booking_date': inmate['bookingDate'],
-  'booking_number': inmate['bookingNumber'],
-  'arrest_id': inmate['arrests'][0]['arrestID'],
-  'arresting_agency': inmate['arrests'][0]['arrestingAgency'],
-  'charge_description': inmate['charges'][0]['chargeDescription'],
-  'inmate_dob': inmate['defendantDOB'],
-  'inmate_name': inmate['defendantName'],
-  'facility': inmate['facility'],
-  'jail_id': inmate['jailID'],
-  'release_date': inmate['releaseDate'],
-  'charge_count': inmate['chargeCount'],
-  'booking_time': inmate['bookingTime'],
-  'release_time': inmate['releaseTime'],
-  'so_num': inmate['defendantSONum'],
-  'uri': view_url
-}
+  view_url = base_url + inmate['webIntents'][0]['uri']
 
-message = '''
-SO#: {so_num}
-Name: {inmate_name}
-First Name: 
-Last Name: 
-Middle Name: 
-Sex: 
-Race: 
-Age: 
-Address: 
-Bond Amount: 
-DOB: {inmate_dob}
-Facility: {facility}
-Jail ID: {jail_id}
-Arrest ID: {arrest_id}
-Booking Number: {booking_number}
-Booking Date: {booking_date}
-Booking Time: {booking_time}
-Type: {inmate_type}
-Arresting Agency: {arresting_agency}
-Charge Count: {charge_count}
-Charge Description: {charge_description}
-Release Date: {release_date}
-Release Time: {release_time}
-URI: {uri}
-'''.format(**inmate_dict)
+  inmate_dict = {
+    'county_name': 'dekalb',
+    'timestamp': None,
+    'url': view_url,
+    'inmate_id': inmate['defendantSONum'],
+    'inmate_lastname': name.last,
+    'inmate_firstname': name.first,
+    'inmate_middlename': name.middle,
+    'inmate_sex': None,
+    'inmate_race': None,
+    'inmate_age': None,
+    'inmate_dob': inmate['defendantDOB'],
+    'inmate_address': None,
+    'booking_timestamp': None,
+    'release_timestamp': None,
+    'processing_numbers': None,
+    'agency': inmate['arrests'][0]['arrestingAgency'],
+    'facility': inmate['facility'],
+    'charges': None,
+    'severity': None,
+    'bond_amount': None,
+    'current_status': None,
+    'court_dates': None,
+    'days_jailed': None,
+    'other': None,
+    'notes': None,
+    'inmate_type': inmate['type'],
+    'booking_date': inmate['bookingDate'],
+    'booking_number': inmate['bookingNumber'],
+    'arrest_id': inmate['arrests'][0]['arrestID'],
+    'arresting_agency': inmate['arrests'][0]['arrestingAgency'],
+    'charge_description': inmate['charges'][0]['chargeDescription'],
+    'jail_id': inmate['jailID'],
+    'release_date': inmate['releaseDate'],
+    'charge_count': inmate['chargeCount'],
+    'booking_time': inmate['bookingTime'],
+    'release_time': inmate['releaseTime'],
+    'so_num': inmate['defendantSONum']
+  }
 
-print(message) 
+  inmate_list.append(inmate_dict)
 
-with open('dekalb.csv', 'w', newline='') as new_file:
-  fieldnames = [
-    'county_name',
-    'timestamp',
-    'url',
-    'inmate_id',
-    'inmate_lastname',
-    'inmate_firstname',
-    'inmate_middlename',
-    'inmate_sex',
-    'inmate_race',
-    'inmate_age',
-    'inmate_dob',
-    'inmate_address',
-    'booking_timestamp',
-    'release_timestamp',
-    'processing_numbers',
-    'agency',
-    'facility',
-    'charges',
-    'severity',
-    'bond_amount',
-    'current_status',
-    'court_dates',
-    'days_jailed',
-    'other',
-    'notes'
-  ]
+with open('dekalb.csv', 'w') as new_file:
+
+  fieldnames = list(inmate_dict.keys())
 
   csv_writer = csv.writer(new_file, delimiter=',')
 
   csv_writer.writerow(fieldnames)
 
-  new_row = []
-
-  for key, value in inmate_dict.items():
-    new_row += [value]
-
-  csv_writer.writerow(new_row)
+  csv_writer.writerow(dict(inmate_dict))
   
+
+# message = '''
+# SO#: {so_num}
+# First Name: {inmate_firstname}
+# Last Name: {inmate_lastname}
+# Middle Name: {inmate_middlename}
+# Sex: 
+# Race: 
+# Age: 
+# Address: 
+# Bond Amount: 
+# DOB: {inmate_dob}
+# Facility: {facility}
+# Jail ID: {jail_id}
+# Arrest ID: {arrest_id}
+# Booking Number: {booking_number}
+# Booking Date: {booking_date}
+# Booking Time: {booking_time}
+# Type: {inmate_type}
+# Arresting Agency: {arresting_agency}
+# Charge Count: {charge_count}
+# Charge Description: {charge_description}
+# Release Date: {release_date}
+# Release Time: {release_time}
+# URL: {url}
+# '''.format(**inmate_dict)
+
+# print(message)
+
+# print(json.dumps(inmate, indent=2))
 
 
 # JAIL SEARCH========================================
