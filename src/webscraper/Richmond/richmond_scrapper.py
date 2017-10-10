@@ -3,6 +3,9 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 driver = webdriver.Chrome()
 driver.get("http://appweb2.augustaga.gov/InmateInquiry/AltInmatesOnline.aspx")
@@ -32,10 +35,13 @@ try:
     row_link_elem = driver.find_element_by_id(row_link_id)
     row_link_elem.click()
 
-    driver.implicitly_wait(2)
+    
 except NoSuchElementException as error:
     print("Error: {0}".format(error))
     exit()
+
+WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.ID, "InmateData1_pnlInmate")))
+
 
 updated_soup = BeautifulSoup(driver.page_source, "html.parser")
 detail_panel = updated_soup.find(id="pnlDetail")
@@ -48,4 +54,4 @@ print(detail_panel.find("div", id="InmateData1_pnlInmate"))
 #check if next page link is clickable, if it is, click and parse all the booking rows
 #stop when next link is not clickable
 
-driver.close()
+#driver.close()
