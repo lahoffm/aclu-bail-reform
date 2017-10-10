@@ -14,8 +14,8 @@ search_payload = {
   "@odata.context":"https://it-odyint-wp2.dcg.dekalb.loc/app/JailSearchService/$metadata#search/$entity",
   "@odata.editLink":"http://search/fake",
   "Id":"0","queryString":"dkso",
-  "from":0,
-  "size":10,
+  "from":10,
+  "size":1,
   "facets":
     [
       {
@@ -27,7 +27,6 @@ search_payload = {
           [
             {
               "name":"Past Year",
-              "count":22071,
               "selected":False,
               "rangeFrom":"2016-10-06T00:00:00.000Z",
               "rangeTo":"2017-10-06T23:59:59.000Z",
@@ -35,7 +34,6 @@ search_payload = {
             },
             {
               "name":"Past 3 Months",
-              "count":6421,
               "selected":False,
               "rangeFrom":"2017-07-06T00:00:00.000Z",
               "rangeTo":"2017-10-06T23:59:59.000Z",
@@ -43,7 +41,6 @@ search_payload = {
             },
             {
               "name":"Past Month",
-              "count":2394,
               "selected":False,
               "rangeFrom":"2017-09-06T00:00:00.000Z",
               "rangeTo":"2017-10-06T23:59:59.000Z",
@@ -51,7 +48,6 @@ search_payload = {
             },
             {
               "name":"Past Week",
-              "count":589,
               "selected":False,
               "rangeFrom":"2017-09-29T00:00:00.000Z",
               "rangeTo":"2017-10-06T23:59:59.000Z",
@@ -59,7 +55,6 @@ search_payload = {
             },
             {
               "name":"Yesterday",
-              "count":92,
               "selected":False,
               "rangeFrom":"2017-10-05T00:00:00.000Z",
               "rangeTo":"2017-10-05T23:59:59.000Z",
@@ -67,7 +62,6 @@ search_payload = {
             },
             {
               "name":"Custom",
-              "count":0,
               "selected":False,
               "rangeFrom":"2017-10-06T00:00:00.000Z",
               "rangeTo":"2017-10-06T00:00:00.000Z",
@@ -75,10 +69,9 @@ search_payload = {
             },
             {
               "name":"Today",
-              "count":27,
               "selected":False,
-              "rangeFrom":"2017-10-06T00:00:00.000Z",
-              "rangeTo":"2017-10-06T23:59:59.000Z",
+              "rangeFrom":"2017-10-09T00:00:00.000Z",
+              "rangeTo":"2017-10-09T23:59:59.000Z",
               "displayOrder":2
             }
           ]
@@ -92,7 +85,6 @@ search_payload = {
           [
             {
               "name":"Past Year",
-              "count":22240,
               "selected":False,
               "rangeFrom":"2016-10-06T00:00:00.000Z",
               "rangeTo":"2017-10-06T23:59:59.000Z",
@@ -100,7 +92,6 @@ search_payload = {
             },
             {
               "name":"Past 3 Months",
-              "count":6468,
               "selected":False,
               "rangeFrom":"2017-07-06T00:00:00.000Z",
               "rangeTo":"2017-10-06T23:59:59.000Z",
@@ -108,7 +99,6 @@ search_payload = {
             },
             {
               "name":"Past Month",
-              "count":2443,
               "selected":False,
               "rangeFrom":"2017-09-06T00:00:00.000Z",
               "rangeTo":"2017-10-06T23:59:59.000Z",
@@ -116,7 +106,6 @@ search_payload = {
             },
             {
               "name":"Past Week",
-              "count":562,
               "selected":False,
               "rangeFrom":"2017-09-29T00:00:00.000Z",
               "rangeTo":"2017-10-06T23:59:59.000Z",
@@ -124,7 +113,6 @@ search_payload = {
             },
             {
               "name":"Yesterday",
-              "count":106,
               "selected":False,
               "rangeFrom":"2017-10-05T00:00:00.000Z",
               "rangeTo":"2017-10-05T23:59:59.000Z",
@@ -132,7 +120,6 @@ search_payload = {
             },
             {
               "name":"Custom",
-              "count":0,
               "selected":False,
               "rangeFrom":"2017-10-06T00:00:00.000Z",
               "rangeTo":"2017-10-06T00:00:00.000Z",
@@ -140,7 +127,6 @@ search_payload = {
             },
             {
               "name":"Today",
-              "count":15,
               "selected":False,
               "rangeFrom":"2017-10-06T00:00:00.000Z",
               "rangeTo":"2017-10-06T23:59:59.000Z","displayOrder":2
