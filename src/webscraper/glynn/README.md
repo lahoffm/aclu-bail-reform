@@ -29,3 +29,34 @@
 * If their PDF ever changes, you can re-find the coordinates by running `tabula.exe` in [tabula](tabula) folder (also downloadable [here](http://tabula.technology/)). [Tabula-Java wiki](https://github.com/tabulapdf/tabula-java/wiki/Using-the-command-line-tabula-extractor-tool#grab-coordinates-of-the-table-you-want) explains how to do this.
 > Select your table area(s) as usual and proceed to the "Preview & Export Extracted Data" step.
 > Under Export Format, select "Script" instead of CSV, and then click "Export" to download the generated code.
+
+## Results
+[As per the specifications](https://github.com/lahoffm/aclu-bail-reform/blob/master/CONTRIBUTING.md#csv-columns-in-order), the resulting CSV includes the following columns:
+
+| Column Name       | Data Available
+|-------------------|---------------|
+| county_name       | ✓ |
+| timestamp         | ✓ |
+| url               | ✓ |
+| inmate_id         | ✗ |
+| inmate_lastname   | ✓ |
+| inmate_firstname  | ✓ |
+| inmate_middlename | ✓ |
+| inmate_sex        | ✓ |
+| inmate_race       | ✓ |
+| inmate_age        | ✓ |
+| inmate_dob        | ✗ |
+| inmate_address    | ✗ |
+| booking_timestamp | Day only |
+| release_timestamp | ✗ |
+| processing_numbers| ✗ |
+| agency            | ✗ |
+| facility          | ✓ |
+| charges           | ✓ |
+| severity          | For some charges |
+| bond_amount       | ✗ |
+| current_status    | For some charges |
+| court_dates       | ✗ |
+| days_jailed       | ✓ |
+| other             | ✗ |
+| notes				| ✓ |

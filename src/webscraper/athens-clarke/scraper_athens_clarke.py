@@ -386,7 +386,7 @@ class ScraperAthensClarke(object):
                   'current_status', # yes - in subpages
                   'court_dates',
                   'days_jailed',
-                  'other', # yes for booking reports site - court jurisdiction
+                  'other', # yes for booking reports site - court jurisdiction & extra bond info
                   'notes']) # yes
         self.df[:] = '' # unfilled columns will be written to CSV as empty strings
         self.df['county_name'] = 'athens-clarke'
