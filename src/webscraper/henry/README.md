@@ -1,4 +1,7 @@
 # Webscraper for Henry county
+
+* **Currently it is mostly a copy of Athens-Clarke webscraper. Almost all of the code has to be deleted/changed to make it specific for Henry county, feel free to do so.**
+
 * Python 3.6.3
 * Retrieves records for [Henry county jail](http://www.henrycountysheriff.net/InmateInformation)
 * Uses [```pandas.read_html```](https://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_html.html)
