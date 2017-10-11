@@ -1,154 +1,118 @@
+import sys
 import requests
 import json
-import req_data
 import csv
 from nameparser import HumanName
-import datetime
+import req_data as req
+import parser_index as parser
 
-def get_charges(charges):
-  charges_list = []
-  for charge in charges:
-    charges_list.append(charge['ChargeDescription'])
-  return charges_list
+if len(sys.argv) > 1:
+  command = sys.argv[1]
+  if command == 'all':
+    if len(sys.argv) == 4:
+      print('Please wait...')
+      from_index = sys.argv[2]
+      num_results = sys.argv[3]
+      params = req.create_params(from_index=from_index, num_results=num_results)
+      label = parser.get_cvs_label(command=command, from_index=from_index, num_results=num_results)
+    else:
+      print('Please specify a start index (min 0) and the number of wanted results (max 1000).')
+      sys.exit()
+  elif command == 'today':
+    print('Please wait...')
+    params = req.create_params(today=True)
+    label = parser.get_cvs_label(command=command)
+  elif command == 'custom':
+    if len(sys.argv) == 3:
+      print('Please wait...')
+      custom_date = sys.argv[2]
+      print(custom_date)
+      params = req.create_params(today=True, custom_date=custom_date)
+      label = parser.get_cvs_label(command=command, custom_date=custom_date)
+    else:
+      print('Please specify a date (yyyy-mm-dd).')
+      sys.exit()
+  else:
+    print('Please enter a valid command (all, today).')
+    sys.exit()
+else:
+  print('Please wait...')
+  params = req.create_params()
+  label = parser.get_cvs_label()
 
-req_post = requests.post('https://ody.dekalbcountyga.gov/app/JailSearchService/search', json=req_data.search_payload, headers=req_data.search_headers)
+payload = req.get_payload(params)
+req_post = requests.post('https://ody.dekalbcountyga.gov/app/JailSearchService/search', json=payload, headers=req.get_headers())
 search_results = req_post.json()
-inmate_data = list(search_results['searchResult']['hits'])
-print(json.dumps(inmate_data, indent=2))
 
+if 'searchResult' not in search_results:
+  print('Please input a valid date.')
+  sys.exit()
+
+inmate_data = list(search_results['searchResult']['hits'])
+
+if len(inmate_data) == 0:
+  print('No results found.')
+  sys.exit()
 inmate_list = []
+
+i = 0
 
 for inmate in inmate_data:
   name = HumanName(inmate['defendantName'])
   jail_id = str(inmate['jailID'])
   view_url = 'https://ody.dekalbcountyga.gov/app/ViewJailing/#/jailing/' + jail_id
   req_get = requests.get('https://ody.dekalbcountyga.gov/app/ViewJailingService//Jailings(' + jail_id + ')')
+
+  print(req_get.content)
+
+  if 'headers' in req_get:
+    print(i)
+    print(req_get.headers)
+    i = i + 1
+  else:
+    print('not working')
+
   jailing_data = req_get.json()
-
-  print(json.dumps(jailing_data, indent=2))
-
-
 
   inmate_dict = {
     'county_name': 'dekalb',
-    'timestamp': None,
+    'timestamp': parser.get_current_timestamp(),
     'url': view_url,
-    'inmate_id': jail_id,
+    'inmate_id': inmate['bookingNumber'],
     'inmate_lastname': name.last,
     'inmate_firstname': name.first,
     'inmate_middlename': name.middle,
     'inmate_sex': jailing_data['DefendantGender'],
     'inmate_race': jailing_data['DefendantRace'],
-    'inmate_age': None,
-    'inmate_dob': inmate['defendantDOB'],
+    'inmate_age': parser.get_age(jailing_data['DefendantDOBString']),
+    'inmate_dob': parser.get_dob_str(jailing_data['DefendantDOBString']),
     'inmate_address': ', '.join(jailing_data['DefendantAddress']),
-    'booking_timestamp': inmate['bookingDate'],
-    'release_timestamp': inmate['releaseDate'],
-    'processing_numbers': ' | '.join([
-        'so#=' + str(inmate['defendantSONum']),
-        'booking#=' + str(inmate['bookingNumber']),
-        'jailID=' + str(inmate['jailID']),
-        'arrestID=' + str(inmate['arrests'][0]['arrestID'])
-      ]),
+    'booking_timestamp': parser.get_booking_timestamp(jailing_data['BookingDateString'], jailing_data['BookingTime']),
+    'release_timestamp': parser.get_release_timestamp(jailing_data['ReleaseTime']),
+    'processing_numbers': parser.get_ids_str(inmate['defendantSONum'], inmate['bookingNumber'], inmate['jailID'], inmate['arrests'][0]['arrestID']),
     'agency': inmate['arrests'][0]['arrestingAgency'],
     'facility': jailing_data['Facility'],
-    'charges': ' | '.join(get_charges(jailing_data['Charges'])),
+    'charges': parser.get_charges_str(jailing_data['Charges']),
     'severity': None,
     'bond_amount': None,
     'current_status': None,
     'court_dates': None,
-    'days_jailed': None,
+    'days_jailed': parser.get_days_jailed(jailing_data['BookingDateString'], jailing_data['BookingTime']),
     'other': None,
-    'notes': None,
-    'arresting_agency': inmate['arrests'][0]['arrestingAgency'],
-    'charge_description': inmate['charges'][0]['chargeDescription'],
-    'jail_id': inmate['jailID'],
-    'charge_count': inmate['chargeCount'],
-    'so_num': inmate['defendantSONum']
+    'notes': None
   }
 
   inmate_list.append(inmate_dict)
 
-
-# print(json.dumps(inmate_list, indent=2))
-
-with open('dekalb.csv', 'w', newline='') as new_file:
+with open('./../../../data/dekalb-' + label + '-' + parser.get_csv_timestamp() + '.csv', 'w', newline='') as new_file:
 
   fieldnames = list(inmate_dict.keys())
 
   csv_writer = csv.DictWriter(new_file, fieldnames=fieldnames, delimiter=',', dialect='excel')
 
   csv_writer.writeheader()
-  # csv_writer.writerow(fieldnames)
 
   for inmate in inmate_list:
     csv_writer.writerow(inmate)
-  
 
-# message = '''
-# SO#: {so_num}
-# First Name: {inmate_firstname}
-# Last Name: {inmate_lastname}
-# Middle Name: {inmate_middlename}
-# Sex: 
-# Race: 
-# Age: 
-# Address: 
-# Bond Amount: 
-# DOB: {inmate_dob}
-# Facility: {facility}
-# Jail ID: {jail_id}
-# Arrest ID: {arrest_id}
-# Booking Number: {booking_number}
-# Booking Date: {booking_date}
-# Booking Time: {booking_time}
-# Type: {inmate_type}
-# Arresting Agency: {arresting_agency}
-# Charge Count: {charge_count}
-# Charge Description: {charge_description}
-# Release Date: {release_date}
-# Release Time: {release_time}
-# URL: {url}
-# '''.format(**inmate_dict)
-
-# print(message)
-
-# print(json.dumps(inmate, indent=2))
-
-
-# JAIL SEARCH========================================
-# url                 | {inmate_uri}
-# inmate_id           | //refer to other IDs
-# inmate_so           | {so_num}
-# arrest_id           | {arrest_id}
-# inmate_lastname     | {inmate_name} parsed
-# inmate_firstname    | {inmate_name} parsed
-# inmate_middlename   | {inmate_name} parsed
-# inmate_dob          | {inmate_dob}
-# booking_timestamp   | {booking_date} + {booking_time}
-# release_timestamp   | {release_date} + {release_time}
-# processing_numbers  | //refer to other IDs
-# agency              | {arresting_agency}
-# charges             | {charge_description} 
-# charge_count        | {charge_count}
-
-
-
-
-# JAIL VIEW==========================================
-# inmate_sex          |
-# inmate_race         |
-# inmate_age          |
-# inmate_address      |
-# bond_amount         |
-# total_due           |
-
-
-# OTHER===============================================
-# county_name         | dekalb
-# timestamp           | 
-# days_jailed         | {current_timestamp} - {booking_timestamp}
-# current_status      |
-# court_dates         |
-# other               |
-# notes               |
+print('Scrape complete! (Check the data folder for dekalb-*.csv.)')
