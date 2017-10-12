@@ -37,7 +37,7 @@ This command scrapes all records, if any, for the current date (*e.g. 2017-10-01
 ```
 python webscraper.py custom 1900-01-01
 ```
-This comand scrapes all records for a custom date. The *custom date* must be specified as an argument in *YYYY-MM-DD* format. If there are no records for a specified date, it will respond with `No records found.`
+This comand scrapes all records for a custom date. A *custom date* must be specified as an argument in *YYYY-MM-DD* format. If there are no records for a specified date, it will respond with `No records found.`
 
 #### All Records
 ```
