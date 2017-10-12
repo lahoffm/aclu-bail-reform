@@ -25,7 +25,7 @@ Required packages are listed in *requirements.txt*.
 ```
 python webscraper.py all 0 100
 ```
-Scrapes records starting from an index number for a certain number of records (e.g. `python webscraper.py all 12000 50` will search for 50 records starting from index 12000). An **index number** and **record size** must be specified as arguments. **Discretion:** The larger the record size, the longer the runtime. For large record sizes, make sure network connection is stable for the entire duration of the scrape.
+Scrapes records starting from an index number for a certain number of records (e.g. `python webscraper.py all 12000 50` will search for 50 records starting from index 12000). An **index number** and **record size** must be specified as arguments. **Note:** The larger the record size, the longer the runtime. For large record sizes, make sure network connection is stable for the entire duration of the scrape.
 
 #### Today
 ```
