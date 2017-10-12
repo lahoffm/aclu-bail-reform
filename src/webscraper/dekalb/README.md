@@ -31,7 +31,7 @@ By default, this command scrapes records starting from index 0 for 100 records.
 ```
 python webscraper.py today
 ```
-This command scrapes all records, if any, for the current day (*e.g. 2017-10-01T00:00:00.000Z - 2017-10-01T23:59:59.000Z*). If this command is used before any inmate booking, it will respond with `No records found.`
+This command scrapes all records, if any, for the current date (*e.g. 2017-10-01T00:00:00.000Z - 2017-10-01T23:59:59.000Z*). If this command is used before any inmate booking, it will respond with `No records found.`
 
 #### Custom Date
 ```
