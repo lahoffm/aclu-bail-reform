@@ -21,11 +21,11 @@ Required packages are listed in *requirements.txt*.
 - An inmate may have multiple records if there are multiple charges.
 - Some records may be missing due to unknown circumstances. Jail IDs for missing records will be logged at the end of the scrape.
 
-#### Default
+#### All Records
 ```
-python webscraper.py
+python webscraper.py all 0 100
 ```
-Scrapes records starting from index 0 for 100 records.
+Scrapes records starting from an index number for a certain number of records (e.g. `python webscraper.py all 12000 50` will search for 50 records starting from index 12000). An **index number** and **record size** must be specified as arguments. **Discretion:** The larger the record size, the longer the runtime. For large record sizes, make sure network connection is stable for the entire duration of the scrape.
 
 #### Today
 ```
@@ -39,11 +39,11 @@ python webscraper.py custom 1900-01-01
 ```
 Scrapes all records for a custom date. A **custom date** (yyyy-mm-dd) must be specified as an argument. If there are no records for a specified date, it will respond with `No records found.`
 
-#### All Records
+#### Default
 ```
-python webscraper.py all 0 100
+python webscraper.py
 ```
-Scrapes records starting from an index number for a certain number of records (e.g. `python webscraper.py all 12000 50` will search for 50 records starting from index 12000). An **index number** and **record size** must be specified as arguments. **Discretion:** The larger the record size, the longer the runtime. For large record sizes, make sure network connection is stable for the entire duration of the scrape.
+Scrapes records starting from index 0 for 100 records.
 
 
 | Column Name                     | Data Available
