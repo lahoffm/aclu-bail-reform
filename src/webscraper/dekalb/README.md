@@ -45,9 +45,7 @@ python webscraper.py
 ```
 Scrapes records starting from index 0 for 100 records.
 
-
-
-
+## Available Data
 | Column Name                     | Data Available
 |---------------------------------|---------------|
 | county_name                     | ✓ |
