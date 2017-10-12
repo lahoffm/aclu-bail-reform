@@ -64,7 +64,7 @@ with open('./../../../data/dekalb-' + label + '-' + helpers.get_csv_timestamp() 
   csv_writer.writeheader()
 
   progress_count = 0
-# inmate_list = []
+
   invalid_ids = []
 
   for inmate in inmate_data:
@@ -78,7 +78,7 @@ with open('./../../../data/dekalb-' + label + '-' + helpers.get_csv_timestamp() 
       continue
 
     jailing_data = req_get.json()
-    print(json.dumps(jailing_data, indent=2))
+    # print(json.dumps(jailing_data, indent=2))
     charges = helpers.parse_charges(jailing_data['Charges'])
 
     inmate_dict = {
@@ -109,9 +109,6 @@ with open('./../../../data/dekalb-' + label + '-' + helpers.get_csv_timestamp() 
       'notes': None
     }
 
-    # inmate_list.append(inmate_dict)
-
-    # for inmate in inmate_list:
     csv_writer.writerow(inmate_dict)
 
     progress_count = progress_count + 1
