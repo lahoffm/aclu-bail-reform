@@ -9,31 +9,31 @@ The purpose of this project is to help build a case for the [ACLU Bail Reform Pr
 pip install -r requirements.txt
 ```
 
-The required packages for this scraper are listed in **requirements.txt**.
+Required packages for this scraper are listed in **requirements.txt**.
 
 ## Commands & Usage
 
 Records are sorted by inmate booking number. An inmate may have duplicate records if there are multiple charges. 
 
-### Default
+#### Default
 ```
 python webscraper.py
 ```
 By default, this command scrapes records starting from index 0 for 100 results.
 
-### Today
+#### Today
 ```
 python webscraper.py **today**
 ```
 This command scrapes all records, if any, for the current day (*e.g. 2017-10-01T00:00:00.000Z-2017-10-01T23:59:59.000Z*). If this command is used before any inmate booking, it will respond with 'No results found.'
 
-### Custom Date
+#### Custom Date
 ```
 python webscraper.py custom 1900-01-01
 ```
 This comand scrapes all records for a custom date. The custom date must be specified as an argument in YYYY-MM-DD format. If there are no records for a specified date, it will respond with 'No resuts found.'
 
-### All Records
+#### All Records
 ```
 python webscraper.py all 0 100
 ```
