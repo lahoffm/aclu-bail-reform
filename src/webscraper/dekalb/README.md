@@ -45,8 +45,7 @@ python webscraper.py
 ```
 Scrapes records starting from index 0 for 100 records.
 
-
-
+<center>
 | Column Name                     | Data Available
 |---------------------------------|---------------|
 | county_name                     | ✓ |
@@ -72,8 +71,9 @@ Scrapes records starting from index 0 for 100 records.
 | current_status                  | ✗ |
 | court_dates                     | ✗ |
 | days_jailed                     | ✓ |
-| other \*                         | ✓ |
+| other \*                        | ✓ |
 | notes                           | ✗ |
+</center>
 
 <sup>1</sup> Same as booking number.
 
