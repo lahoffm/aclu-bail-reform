@@ -78,7 +78,7 @@ Scrapes records starting from index 0 for 100 records.
 
 <sup>2</sup> Processing numbers include SO#, booking number, jail ID, and arrest ID.
 
-\* Other available data: charge count, bond type, charge disposition (e.g. 'Bonded Out', 'Dismissed'), height, weight, hair, eyes, charge warrant number, offense date, arrest date, arresting agency. These data can be added upon request.
+\* **Other available data**: charge count, bond type, charge disposition (e.g. 'Bonded Out', 'Dismissed'), height, weight, hair, eyes, charge warrant number, offense date, arrest date, arresting agency. These data can be added upon request.
 
 ## Contributing
 If you want to [contribute](https://github.com/lahoffm/aclu-bail-reform/blob/master/CONTRIBUTING.md) to the ACLU Bail Reform Project, contact [project owner](https://github.com/lahoffm/aclu-bail-reform).
