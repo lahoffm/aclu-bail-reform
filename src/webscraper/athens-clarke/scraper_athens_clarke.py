@@ -92,12 +92,12 @@ class ScraperAthensClarke(object):
 
         # Set case number - many are blank for Athens-Clarke county
         # Replace semicolons so ETL code doesn't think they are multiple processing numbers
-        # Format is 'Case # XXX;Police case # XXX'. If one or both are missing there is still a ';'
+        # Format is 'Case # XXX | Police case # XXX'. If one or both are missing there is still a ' | '
         #   so ETL parser knows what's missing.
-        self.df['processing_numbers'] = 'Case # ' + df_main['CASE NUMBER'].str.replace(';',':')
+        self.df['processing_numbers'] = 'Case # ' + df_main['CASE NUMBER'].str.replace(' | ',' : ')
         self.df['processing_numbers'].fillna('', inplace=True)
-        tmp = ';Police case # ' + df_main['POLICE CASE#'].str.replace(';',':')
-        tmp.fillna(';', inplace=True)
+        tmp = ' | Police case # ' + df_main['POLICE CASE#'].str.replace(' | ',' : ')
+        tmp.fillna(' | ', inplace=True)
         self.df['processing_numbers'] = self.df['processing_numbers'].str.cat(tmp)
         
         # Set inmate date of birth - only the year is available for Athens-Clarke county
@@ -176,7 +176,7 @@ class ScraperAthensClarke(object):
     
         # Set charge - at present, there's 1 row per charge but will split/apply/combine later so it's 1 row per inmate
         df_main['CHARGE'].fillna('', inplace=True) # this happens sometimes, probably as they are in process of updating a person's charge
-        self.df['charges'] = df_main['CHARGE'].str.replace(';',':') # convert so we can later chain charges with ';'
+        self.df['charges'] = df_main['CHARGE'].str.replace(' | ',' : ') # convert so we can later chain charges with ' | '
     
         # Set charge severity - ignoring "Local ordinance" because it's rare
         df_main.fillna('', inplace=True) # all columns from this point forward probably have NaN so fill with ''
@@ -185,22 +185,22 @@ class ScraperAthensClarke(object):
         self.df['severity'] = df_main['CRIME TYPE']
         
         # Set court jurisdiction in 'other' field
-        self.df['other'] = pd.Series(['Court jurisdiction: ']*df_main.shape[0]).str.cat(df_main['COURT JURISDICTION'].str.replace(';',':'))
+        self.df['other'] = pd.Series(['Court jurisdiction: ']*df_main.shape[0]).str.cat(df_main['COURT JURISDICTION'].str.replace(' | ',' : '))
         self.df.loc[self.df['other']=='Court jurisdiction: ','other'] = ''
         
         # Set bond_amount - will add to this when scraping subpages
         self.format_bond_amount(df_main)
-        df_main['BONDING COMPANY'] = df_main['BONDING COMPANY'].str.replace(';',':')
+        df_main['BONDING COMPANY'] = df_main['BONDING COMPANY'].str.replace(' | ',' : ')
         self.df['bond_amount'] = df_main['BOND AMOUNT'].str.cat([["( Bonding company:"]*df_main.shape[0],\
                                                              df_main['BONDING COMPANY'],\
                                                              [')']*df_main.shape[0]],\
                                                              sep=' ')
 
         # Set case number & warrant number - see comments in scrape_main_roster()
-        self.df['processing_numbers'] = 'Warrant # ' + df_main['WARRANT #'].str.replace(';',':')
+        self.df['processing_numbers'] = 'Warrant # ' + df_main['WARRANT #'].str.replace(' | ',' : ')
         self.df.loc[self.df['processing_numbers']=='Warrant # ','processing_numbers'] = ''
-        tmp = ',Police case # ' + df_main['POLICE CASE#'].str.replace(';',':')
-        tmp[tmp==',Police case # '] = ',' # split with ',' instead of ';' because each charge has its own warrant/case#
+        tmp = ',Police case # ' + df_main['POLICE CASE#'].str.replace(' | ',' : ')
+        tmp[tmp==',Police case # '] = ',' # split with ',' instead of ' | ' because each charge has its own warrant/case#
         self.df['processing_numbers'] = self.df['processing_numbers'].str.cat(tmp)
    
         # Set inmate age when we scraped the site
@@ -305,7 +305,7 @@ class ScraperAthensClarke(object):
                     assert df_sub2['ARRESTING AGENCY'].nunique()==1, 'Invalid arresting agency format'
                 except AssertionError as e:
                      warn(str(e) + ", multiple arresting agencies for subpage " + str(i) + ". Inserting the agency that made the arrest for each charge")
-                     df_sub2.loc[0, 'ARRESTING AGENCY'] = df_sub2['ARRESTING AGENCY'].str.cat(sep=';')
+                     df_sub2.loc[0, 'ARRESTING AGENCY'] = df_sub2['ARRESTING AGENCY'].str.cat(sep=' | ')
                 self.df.loc[ix, 'agency'] = df_sub2.loc[0, 'ARRESTING AGENCY']                                   
             
             df_sub2.fillna('', inplace=True) # important for later fields so semicolons go in right places
@@ -319,22 +319,21 @@ class ScraperAthensClarke(object):
                     warn("Grade of charge 'L' (local ordinance) for subpage " + str(i) + ". Replacing with ''")
                 assert np.isin(df_sub2['GRADE OF CHARGE'].unique(), np.array(['M','F',''])).all(), 'Invalid misdemeanor/felony format.'
                 df_sub2['GRADE OF CHARGE'] = df_sub2['GRADE OF CHARGE'].str.replace('M','misdemeanor').str.replace('F','felony')
-                self.df.loc[ix, 'severity'] = df_sub2['GRADE OF CHARGE'].str.cat(sep=';')
+                self.df.loc[ix, 'severity'] = df_sub2['GRADE OF CHARGE'].str.cat(sep=' | ')
 
-            # Set charges, separated by ';' even if charge description is empty string
-            # Have to replace ';' with ':' first to prevent bug
+            # Set charges, separated by ' | ' even if charge description is empty string
             if flag=='roster': # booking site had this in main page
-                self.df.loc[ix,'charges'] = df_sub2['CHARGE DESCRIPTION'].str.replace(';',':').str.cat(sep=';')
+                self.df.loc[ix,'charges'] = df_sub2['CHARGE DESCRIPTION'].str.replace(' | ',' : ').str.cat(sep=' | ')
 
-            # Set bond amount for each charge, separated by ';'.
+            # Set bond amount for each charge, separated by ' | '.
             if flag=='roster': # booking site had this in main page
                 self.format_bond_amount(df_sub2)
-                df_sub2['BOND REMARKS'] = df_sub2['BOND REMARKS'].str.replace(';',':')
-                df_sub2['BOND LAST UPDATED'] = df_sub2['BOND LAST UPDATED'].str.replace(';',':')
+                df_sub2['BOND REMARKS'] = df_sub2['BOND REMARKS'].str.replace(' | ',' : ')
+                df_sub2['BOND LAST UPDATED'] = df_sub2['BOND LAST UPDATED'].str.replace(' | ',' : ')
                 self.df.loc[ix,'bond_amount'] = df_sub2['BOND AMOUNT'].str.cat([df_sub2['BOND REMARKS'],
                                                                           [' Bond last updated']*df_sub2.shape[0],
                                                                           df_sub2['BOND LAST UPDATED']],
-                                                                          sep=' ').str.cat(sep=';')
+                                                                          sep=' ').str.cat(sep=' | ')
             
             # The reason this is not in bond_amount field
             # is because sometimes we can't match up charges 1-1 with the charge on the main page.
@@ -346,12 +345,12 @@ class ScraperAthensClarke(object):
                                                                  [': bond remarks ']*df_sub2.shape[0],
                                                                  df_sub2['BOND REMARKS'],
                                                                  [', bond last updated ']*df_sub2.shape[0],
-                                                                 df_sub2['BOND LAST UPDATED']]).str.cat(sep=';')
-                self.df.loc[ix,'other'] = self.df.loc[ix,'other'].str.cat([supp_str], sep=' ||| ')        
+                                                                 df_sub2['BOND LAST UPDATED']]).str.cat(sep=' | ')
+                self.df.loc[ix,'other'] = self.df.loc[ix,'other'].str.cat([supp_str], sep=' | ')        
 
             # Set status for each charge like 'SENTENCED'. For this site, most statuses are blank.
             if flag=='roster': # nb see comment above for why we don't do this for flag==booking
-                self.df.loc[ix, 'current_status'] = df_sub2['DISPOSITION'].str.replace(';',':').str.cat(sep=';')
+                self.df.loc[ix, 'current_status'] = df_sub2['DISPOSITION'].str.replace(' | ',' : ').str.cat(sep=' | ')
                         
             # Set notes
             self.df.loc[ix,'notes'] = ''
@@ -386,7 +385,7 @@ class ScraperAthensClarke(object):
                   'current_status', # yes - in subpages
                   'court_dates',
                   'days_jailed',
-                  'other', # yes for booking reports site - court jurisdiction
+                  'other', # yes for booking reports site - court jurisdiction & extra bond info
                   'notes']) # yes
         self.df[:] = '' # unfilled columns will be written to CSV as empty strings
         self.df['county_name'] = 'athens-clarke'
@@ -496,17 +495,16 @@ class ScraperAthensClarke(object):
         # See https://pandas.pydata.org/pandas-docs/stable/generated/pandas.core.groupby.GroupBy.apply.html
         df_onerow = df_inmate.iloc[0,:].copy().to_frame().transpose()
     
-        # Set the fields that are allowed to have different entries (one entry per charge), separated by ';'
-        # Previous processing already replaced ';' in fields with ':'
-        df_onerow['release_timestamp'] = df_inmate['release_timestamp'].str.cat(sep=';')
-        df_onerow['processing_numbers'] = df_inmate['processing_numbers'].str.cat(sep=';')
+        # Set the fields that are allowed to have different entries (one entry per charge), separated by ' | '
+        df_onerow['release_timestamp'] = df_inmate['release_timestamp'].str.cat(sep=' | ')
+        df_onerow['processing_numbers'] = df_inmate['processing_numbers'].str.cat(sep=' | ')
         if df_inmate['agency'].nunique()>1:
             warn("Multiple arresting agencies for inmate ID " + df_onerow.loc[df_onerow.index[0],'inmate_id'] + ". Inserting the agency that made the arrest for each charge")
-            df_onerow['agency'] = df_inmate['agency'].str.cat(sep=';') # SHOULD be indented under if statement
-        df_onerow['charges'] = df_inmate['charges'].str.cat(sep=';')
-        df_onerow['severity'] = df_inmate['severity'].str.cat(sep=';')
-        df_onerow['bond_amount'] = df_inmate['bond_amount'].str.cat(sep=';')
-        df_onerow['other'] = df_inmate['other'].str.cat(sep=';')
+            df_onerow['agency'] = df_inmate['agency'].str.cat(sep=' | ') # SHOULD be indented under if statement
+        df_onerow['charges'] = df_inmate['charges'].str.cat(sep=' | ')
+        df_onerow['severity'] = df_inmate['severity'].str.cat(sep=' | ')
+        df_onerow['bond_amount'] = df_inmate['bond_amount'].str.cat(sep=' | ')
+        df_onerow['other'] = df_inmate['other'].str.cat(sep=' | ')
         
         return df_onerow
 
