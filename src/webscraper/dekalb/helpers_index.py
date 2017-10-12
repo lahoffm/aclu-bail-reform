@@ -6,7 +6,7 @@ def validate_int(index, size):
   try:
     val1 = int(index)
     val2 = int(size)
-    if val1 > 0 and val2 > 0:
+    if val1 >= 0 and val2 >= 0:
       return True
     else:
       return False

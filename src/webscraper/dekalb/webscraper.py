@@ -37,7 +37,7 @@ if len(sys.argv) > 1:
       print('Please specify a date (yyyy-mm-dd).')
       sys.exit()
   else:
-    print('Please enter a valid command (all, today).')
+    print('Please enter a valid command (all, today, custom).')
     sys.exit()
 else:
   command = 'all'
@@ -118,7 +118,7 @@ with open('./../../../data/dekalb-' + label + '-' + helpers.get_csv_timestamp() 
     else:
       print('Progress: ' + str(progress_count), end='\r')
 
-print('Scrape complete!')
+print('Scrape complete!           ')
 print('Total scraped: ' + str(progress_count) + ' record(s)')
 if len(invalid_ids) > 0:
   print('We were unable to scrape for the following Jail ID(s): ' + ', '.join(invalid_ids))
