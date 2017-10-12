@@ -43,7 +43,8 @@ This comand scrapes all records for a custom date. A *custom date* (yyyy-mm-dd) 
 ```
 python webscraper.py all 0 100
 ```
-This command scrapes records starting from an index number for a specified number of records. (e.g. `python webscraper.py all 12000 50` will search for 50 records starting from index 12000.) An *index number* and *record size* must be specified as arguments. **Discretion:** The larger the record size, the longer the runtime. For large record sizes, make sure network connection is stable for the entire duration of the scrape.
+This command scrapes records starting from an index number for a certain number of records. (e.g. `python webscraper.py all 12000 50` will search for 50 records starting from index 12000.) An *index number* and *record size* must be specified as arguments.
+**Discretion:** The larger the record size, the longer the runtime. For large record sizes, make sure network connection is stable for the entire duration of the scrape.
 
 
 | Column Name                     | Data Available
