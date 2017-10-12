@@ -11,4 +11,4 @@ ac = ScraperAthensClarke(timeout=10, retries=3, sleep_sec=1)
 ac.scrape_all()
 
 elapsed = round(time.time() - t)
-print('Seconds elapsed: ' + str(elapsed) + ', minutes elapsed: ' + str(elapsed/60))
+print('Seconds elapsed: ' + str(elapsed))
