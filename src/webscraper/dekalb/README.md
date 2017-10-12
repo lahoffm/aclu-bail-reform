@@ -73,7 +73,7 @@ Scrapes records starting from index 0 for 100 records.
 | current_status \*               | ✓ |
 | court_dates                     | ✗ |
 | days_jailed                     | ✓ |
-| other <sup>4</sup>              | ✓ |
+| *other* <sup>4</sup>            | ✓ |
 | notes                           | ✗ |
 
 <sup>1</sup> Booking number.
