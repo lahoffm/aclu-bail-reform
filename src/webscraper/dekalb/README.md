@@ -1,4 +1,4 @@
-# Webscraper for Dekalb County Jail Records
+# Web Scraper for Dekalb County Jail Records
 
 This Python-based web scraper scrapes Dekalb County jail records from the [Dekalb County - Judicial Information System](https://ody.dekalbcountyga.gov/app/JailSearch/#/search) website.
 
