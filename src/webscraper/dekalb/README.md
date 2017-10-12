@@ -1,8 +1,8 @@
 # Webscraper for Dekalb County Jail Records
 
-This Python-based web scraper scrapes Dekalb County jail records from the [Dekalb County - Judicial Information System](https://ody.dekalbcountyga.gov/app/JailSearch/#/search){:target="_blank"} website.
+This Python-based web scraper scrapes Dekalb County jail records from the [Dekalb County - Judicial Information System](https://ody.dekalbcountyga.gov/app/JailSearch/#/search) website.
 
-The purpose of this project is to help build a case for the [ACLU Bail Reform Project](file:///C:/Users/Jieun/Downloads/ACLU-Bail-Reform-One-pager.pdf) in the state of Georgia.
+The purpose of this project is to help build a case for the [ACLU Bail Reform Project](https://github.com/lahoffm/aclu-bail-reform#aclu-bail-reform-project) in the state of Georgia.
 
 ## Installing Requirements
 
@@ -25,25 +25,25 @@ Required packages are listed in *requirements.txt*.
 ```
 python webscraper.py
 ```
-By default, this command scrapes records starting from index 0 for 100 records.
+By default, scrapes records starting from index 0 for 100 records.
 
 #### Today
 ```
 python webscraper.py today
 ```
-This command scrapes all records, if any, for the current date. If this command is used before any inmate booking, it will respond with `No records found.`
+Scrapes all records, if any, for the current date. If this command is used before any inmate booking, it will respond with `No records found.`
 
 #### Custom Date
 ```
 python webscraper.py custom 1900-01-01
 ```
-This comand scrapes all records for a custom date. A **custom date** (yyyy-mm-dd) must be specified as an argument. If there are no records for a specified date, it will respond with `No records found.`
+Scrapes all records for a custom date. A **custom date** (yyyy-mm-dd) must be specified as an argument. If there are no records for a specified date, it will respond with `No records found.`
 
 #### All Records
 ```
 python webscraper.py all 0 100
 ```
-This command scrapes records starting from an index number for a certain number of records (e.g. `python webscraper.py all 12000 50` will search for 50 records starting from index 12000). An **index number** and **record size** must be specified as arguments. **Discretion:** The larger the record size, the longer the runtime. For large record sizes, make sure network connection is stable for the entire duration of the scrape.
+Scrapes records starting from an index number for a certain number of records (e.g. `python webscraper.py all 12000 50` will search for 50 records starting from index 12000). An **index number** and **record size** must be specified as arguments. **Discretion:** The larger the record size, the longer the runtime. For large record sizes, make sure network connection is stable for the entire duration of the scrape.
 
 
 | Column Name                     | Data Available
