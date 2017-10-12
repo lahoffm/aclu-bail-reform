@@ -25,7 +25,7 @@ Required packages are listed in *requirements.txt*.
 ```
 python webscraper.py
 ```
-By default, scrapes records starting from index 0 for 100 records.
+Scrapes records starting from index 0 for 100 records.
 
 #### Today
 ```
