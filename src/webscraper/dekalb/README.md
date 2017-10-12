@@ -67,10 +67,10 @@ Scrapes records starting from index 0 for 100 records.
 | processing_numbers <sup>2</sup> | ✓ |
 | agency <sup>3</sup>             | ✓ |
 | facility                        | ✓ |
-| charges \*                      | ✓ |
-| severity \*                     | ✓ |
-| bond_amount \*                  | ✓ |
-| current_status \*               | ✓ |
+| *charges* \*                    | ✓ |
+| *severity* \*                   | ✓ |
+| *bond_amount* \*                | ✓ |
+| *current_status* \*             | ✓ |
 | court_dates                     | ✗ |
 | days_jailed                     | ✓ |
 | **other** <sup>4</sup>          | ✓ |
