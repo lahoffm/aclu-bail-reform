@@ -28,7 +28,7 @@ By default, this command scrapes records starting from index 0 for 100 results.
 ```
 python webscraper.py today
 ```
-This command scrapes all records, if any, for the current day (*e.g. 2017-10-01T00:00:00.000Z-2017-10-01T23:59:59.000Z*). If this command is used before any inmate booking, it will respond with 'No results found.'
+This command scrapes all records, if any, for the current day (*e.g. 2017-10-01T00:00:00.000Z-2017 - 10-01T23:59:59.000Z*). If this command is used before any inmate booking, it will respond with 'No results found.'
 
 #### Custom Date
 ```
@@ -74,22 +74,15 @@ This command scrapes records starting from an index number for a specified numbe
 
 \*Other available data: charge count, bond type, disposition (e.g. 'Bonded Out', 'Dismissed'), height, weight, hair, eyes, charge warrant number, offense date, arrest date, arresting agency. These data can be added upon request.
 
-inmate ID is Booking Number
-results ordered by Booking Number
-python webscraper.py (default) get 10 results from all = python webscraper.py all 0 10
-python webscraper.py all 0 100000 (index number, number of results)
   num of results received may be less than input
-python webscraper.py today
+
 Discretion/Disclaimer: larger the sample size, longer the wait, will take few minutes
 
 Need to work on severity
 
-if you scrape too early, today will return nothing (what time should we scrape for today)
 
 PROBLEM: Mosley, Devin Naeem
 
 Num Results may be off a little due to not-working links
 
 DAYS JAILED IS WRONG
-
-REQUIREMENTS.TXT
