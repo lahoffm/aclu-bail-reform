@@ -45,7 +45,7 @@ python webscraper.py
 ```
 Scrapes records starting from index 0 for 100 records.
 
-
+## Available Data
 | Column Name                     | Data Available
 |---------------------------------|---------------|
 | county_name                     | ✓ |
@@ -71,7 +71,7 @@ Scrapes records starting from index 0 for 100 records.
 | current_status                  | ✗ |
 | court_dates                     | ✗ |
 | days_jailed                     | ✓ |
-| other \*                         | ✓ |
+| other \*                        | ✓ |
 | notes                           | ✗ |
 
 <sup>1</sup> Same as booking number.
@@ -79,6 +79,9 @@ Scrapes records starting from index 0 for 100 records.
 <sup>2</sup> Processing numbers include SO#, booking number, jail ID, and arrest ID.
 
 \* Other available data: charge count, bond type, disposition (e.g. 'Bonded Out', 'Dismissed'), height, weight, hair, eyes, charge warrant number, offense date, arrest date, arresting agency. These data can be added upon request.
+
+## Contributing
+If you want to [contribute](https://github.com/lahoffm/aclu-bail-reform/blob/master/CONTRIBUTING.md) to the ACLU Bail Reform Project, contact [project owner](https://github.com/lahoffm/aclu-bail-reform).
 
 
 Need to work on severity
