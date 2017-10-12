@@ -72,3 +72,31 @@ def get_days_jailed(date_string, time_string):
   today = datetime.now()
   booking_date = datetime(int(y), int(mo), int(d), int(h), int(mi), int(s))
   return (today - booking_date).days
+
+fieldnames = [
+    'county_name',
+    'timestamp',
+    'url',
+    'inmate_id',
+    'inmate_lastname',
+    'inmate_firstname',
+    'inmate_middlename',
+    'inmate_sex',
+    'inmate_race',
+    'inmate_age',
+    'inmate_dob',
+    'inmate_address',
+    'booking_timestamp',
+    'release_timestamp',
+    'processing_numbers',
+    'agency',
+    'facility',
+    'charges',
+    'severity',
+    'bond_amount',
+    'current_status',
+    'court_dates',
+    'days_jailed',
+    'other',
+    'notes'
+  ]
