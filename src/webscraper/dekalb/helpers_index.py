@@ -7,13 +7,13 @@ def get_current_timestamp():
   dt,tm = re.split(' ', timestamp)
   return dt + ' ' + tm + ' EST'
 
-def get_cvs_label(command='all', from_index='0', num_results='100', custom_date=None):
+def get_cvs_label(command='all', from_index='0', num_records='100', custom_date=None):
   if command == 'today':
     return 'TODAY'
   elif command == 'custom':
     return 'CUSTOM' + custom_date.replace('-', '')
   else:
-    return 'ALLstart' + from_index + 'size' + num_results
+    return 'ALLstart' + from_index + 'size' + num_records
 
 def get_csv_timestamp():
   timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

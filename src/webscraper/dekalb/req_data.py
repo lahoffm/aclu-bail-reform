@@ -1,9 +1,9 @@
 from datetime import date
 
-def create_params(from_index=0, num_results=100, today=False, custom_date=str(date.today())):
+def create_params(from_index=0, num_records=100, today=False, custom_date=str(date.today())):
   params = {
     'from_index': from_index,
-    'num_results': num_results,
+    'num_records': num_records,
     'today': today,
     'custom_date': custom_date
   }
@@ -21,7 +21,7 @@ def get_payload(params):
     '@odata.editLink':'http://search/fake',
     'Id':'0','queryString':'dkso',
     'from': params['from_index'],
-    'size': params['num_results'],
+    'size': params['num_records'],
     'facets':
       [
         {

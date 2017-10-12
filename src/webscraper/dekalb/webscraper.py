@@ -12,11 +12,11 @@ if len(sys.argv) > 1:
     if len(sys.argv) == 4:
       print('Scraping...')
       from_index = sys.argv[2]
-      num_results = sys.argv[3]
-      params = req.create_params(from_index=from_index, num_results=num_results)
-      label = helpers.get_cvs_label(command=command, from_index=from_index, num_results=num_results)
+      num_records = sys.argv[3]
+      params = req.create_params(from_index=from_index, num_records=num_records)
+      label = helpers.get_cvs_label(command=command, from_index=from_index, num_records=num_records)
     else:
-      print('Please specify a start index (min 0) and the number of wanted results (max 1000).')
+      print('Please specify a start index (min 0) and the number of wanted records (max 1000).')
       sys.exit()
   elif command == 'today':
     print('Scraping...')
@@ -37,7 +37,7 @@ if len(sys.argv) > 1:
 else:
   print('Scraping...')
   command = 'all'
-  num_results = 100
+  num_records = 100
   params = req.create_params()
   label = helpers.get_cvs_label()
 
@@ -52,7 +52,7 @@ if 'searchResult' not in search_results:
 inmate_data = list(search_results['searchResult']['hits'])
 
 if len(inmate_data) == 0:
-  print('No results found.')
+  print('No records found.')
   sys.exit()
 
 with open('./../../../data/dekalb-' + label + '-' + helpers.get_csv_timestamp() + '.csv', 'w', newline='') as new_file:
@@ -114,7 +114,7 @@ with open('./../../../data/dekalb-' + label + '-' + helpers.get_csv_timestamp() 
     progress_count = progress_count + 1
 
     if command == 'all':
-      print('Progress: ' + str(progress_count) + '/' + str(num_results), end='\r')
+      print('Progress: ' + str(progress_count) + '/' + str(num_records), end='\r')
     else:
       print('Records: ' + str(progress_count), end='\r')
 

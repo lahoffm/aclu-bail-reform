@@ -31,19 +31,20 @@ By default, this command scrapes records starting from index 0 for 100 records.
 ```
 python webscraper.py today
 ```
-This command scrapes all records, if any, for the current day (*e.g. 2017-10-01T00:00:00.000Z - 2017-10-01T23:59:59.000Z*). If this command is used before any inmate booking, it will respond with `No results found.`
+This command scrapes all records, if any, for the current day (*e.g. 2017-10-01T00:00:00.000Z - 2017-10-01T23:59:59.000Z*). If this command is used before any inmate booking, it will respond with `No records found.`
 
 #### Custom Date
 ```
 python webscraper.py custom 1900-01-01
 ```
-This comand scrapes all records for a custom date. The custom date must be specified as an argument in *YYYY-MM-DD* format. If there are no records for a specified date, it will respond with `No resuts found.`
+This comand scrapes all records for a custom date. The custom date must be specified as an argument in *YYYY-MM-DD* format. If there are no records for a specified date, it will respond with `No records found.`
 
 #### All Records
 ```
 python webscraper.py all 0 100
 ```
-This command scrapes records starting from an index number for a specified number of results. (e.g. `python webscraper.py all 12000 50` will search for 50 records starting from index 12000.) An *index number* and *record size* must be specified as arguments. **Discretion:** The larger the record size, the longer the runtime. For large record sizes, make sure network connection is stable for the entire duration of the scrape.
+This command scrapes records starting from an index number for a specified number of records. (e.g. `python webscraper.py all 12000 50` will search for 50 records starting from index 12000.) An *index number* and *record size* must be specified as arguments. **Discretion:** The larger the record size, the longer the runtime. For large record sizes, make sure network connection is stable for the entire duration of the scrape.
+
 
 | Column Name                     | Data Available
 |---------------------------------|---------------|
