@@ -70,6 +70,8 @@ This command scrapes records starting from an index number for a specified numbe
 | other\*           | ✓ |
 | notes             | ✗ |
 
+<sup>1</sup>Same as booking number.
+
 \*Other available data: charge count, bond type, disposition (e.g. 'Bonded Out', 'Dismissed'), height, weight, hair, eyes, charge warrant number, offense date, arrest date, arresting agency. These data can be added upon request.
 
 inmate ID is Booking Number
