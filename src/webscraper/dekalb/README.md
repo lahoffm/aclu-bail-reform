@@ -22,7 +22,7 @@ The following commands create a CSV file (*dekalb-\*.csv*) in the **data** folde
 ```
 python webscraper.py
 ```
-By default, this command scrapes records starting from index 0 for 100 results.
+By default, this command scrapes records starting from index 0 for 100 records.
 
 #### Today
 ```
