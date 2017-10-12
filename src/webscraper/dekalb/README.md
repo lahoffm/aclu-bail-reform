@@ -4,7 +4,7 @@ This Python-based web scraper scrapes Dekalb County jail records from the [Dekal
 
 The purpose of this project is to help build a case for the [ACLU Bail Reform Project](https://github.com/lahoffm/aclu-bail-reform#aclu-bail-reform-project) in the state of Georgia.
 
-## Installing Requirements
+## Installation Requirements
 
 - Python 3.6.3
 
