@@ -21,25 +21,25 @@ Required packages are listed in *requirements.txt*.
 - An inmate may have duplicate records if there are multiple charges.
 - Some records may be missing due to unknown circumstances. Jail IDs for missing records will be logged at the end of the scrape.
 
-### Default
+#### Default
 ```
 python webscraper.py
 ```
 By default, scrapes records starting from index 0 for 100 records.
 
-### Today
+#### Today
 ```
 python webscraper.py today
 ```
 Scrapes all records, if any, for the current date. If this command is used before any inmate booking, it will respond with `No records found.`
 
-### Custom Date
+#### Custom Date
 ```
 python webscraper.py custom 1900-01-01
 ```
 Scrapes all records for a custom date. A **custom date** (yyyy-mm-dd) must be specified as an argument. If there are no records for a specified date, it will respond with `No records found.`
 
-### All Records
+#### All Records
 ```
 python webscraper.py all 0 100
 ```

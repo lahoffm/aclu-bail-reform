@@ -10,24 +10,29 @@ if len(sys.argv) > 1:
   command = sys.argv[1]
   if command == 'all':
     if len(sys.argv) == 4:
-      print('Scraping...')
       from_index = sys.argv[2]
       num_records = sys.argv[3]
-      params = req.create_params(from_index=from_index, num_records=num_records)
-      label = helpers.get_cvs_label(command=command, from_index=from_index, num_records=num_records)
+      if helpers.validate_int(from_index, num_records):
+        params = req.create_params(from_index=from_index, num_records=num_records)
+        label = helpers.get_cvs_label(command=command, from_index=from_index, num_records=num_records)
+      else:
+        print('Index number and record size must be positive integers.')
+        sys.exit()
     else:
-      print('Please specify a start index (min 0) and the number of wanted records (max 1000).')
+      print('Please specify a start index (min 0) and the number of wanted records.')
       sys.exit()
   elif command == 'today':
-    print('Scraping...')
     params = req.create_params(today=True)
     label = helpers.get_cvs_label(command=command)
   elif command == 'custom':
-    if len(sys.argv) == 3:
-      print('Scraping...')
+    if len(sys.argv) >= 3:
       custom_date = sys.argv[2]
-      params = req.create_params(today=True, custom_date=custom_date)
-      label = helpers.get_cvs_label(command=command, custom_date=custom_date)
+      if helpers.validate_date(custom_date):
+        params = req.create_params(today=True, custom_date=custom_date)
+        label = helpers.get_cvs_label(command=command, custom_date=custom_date)
+      else:
+        print('Please input a valid date (yyyy-mm-dd).')
+        sys.exit()
     else:
       print('Please specify a date (yyyy-mm-dd).')
       sys.exit()
@@ -35,19 +40,16 @@ if len(sys.argv) > 1:
     print('Please enter a valid command (all, today).')
     sys.exit()
 else:
-  print('Scraping...')
   command = 'all'
   num_records = 100
   params = req.create_params()
   label = helpers.get_cvs_label()
 
+print('Scraping...')
+
 payload = req.get_payload(params)
 req_post = requests.post('https://ody.dekalbcountyga.gov/app/JailSearchService/search', json=payload, headers=req.get_headers())
 search_results = req_post.json()
-
-if 'searchResult' not in search_results:
-  print('Please input a valid date.')
-  sys.exit()
 
 inmate_data = list(search_results['searchResult']['hits'])
 
@@ -116,7 +118,7 @@ with open('./../../../data/dekalb-' + label + '-' + helpers.get_csv_timestamp() 
     if command == 'all':
       print('Progress: ' + str(progress_count) + '/' + str(num_records), end='\r')
     else:
-      print('Records: ' + str(progress_count), end='\r')
+      print('Progress: ' + str(progress_count), end='\r')
 
 print('Scrape complete!')
 print('Total scraped: ' + str(progress_count) + ' record(s)')
