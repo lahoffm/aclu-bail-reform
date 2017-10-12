@@ -59,8 +59,6 @@ if len(inmate_data) == 0:
 
 with open('./../../../data/dekalb-' + label + '-' + helpers.get_csv_timestamp() + '.csv', 'w', newline='') as new_file:
 
-  # fieldnames = list(inmate_dict.keys())
-
   csv_writer = csv.DictWriter(new_file, fieldnames=helpers.fieldnames, delimiter=',', dialect='excel')
 
   csv_writer.writeheader()
@@ -80,6 +78,9 @@ with open('./../../../data/dekalb-' + label + '-' + helpers.get_csv_timestamp() 
       continue
 
     jailing_data = req_get.json()
+    print(json.dumps(jailing_data, indent=2))
+    charges = helpers.parse_charges(jailing_data['Charges'])
+
     inmate_dict = {
       'county_name': 'dekalb',
       'timestamp': helpers.get_current_timestamp(),
@@ -98,12 +99,12 @@ with open('./../../../data/dekalb-' + label + '-' + helpers.get_csv_timestamp() 
       'processing_numbers': helpers.get_ids_str(inmate['defendantSONum'], inmate['bookingNumber'], inmate['jailID'], inmate['arrests'][0]['arrestID']),
       'agency': inmate['arrests'][0]['arrestingAgency'],
       'facility': jailing_data['Facility'],
-      'charges': helpers.get_charges_str(jailing_data['Charges']),
-      'severity': None,
+      'charges': ' | '.join(charges['desc']),
+      'severity': ' | '.join(charges['sev']),
       'bond_amount': None,
       'current_status': None,
       'court_dates': None,
-      'days_jailed': helpers.get_days_jailed(jailing_data['BookingDateString'], jailing_data['BookingTime']),
+      'days_jailed': helpers.get_days_jailed(jailing_data['BookingDateString'], jailing_data['BookingTime'], jailing_data['ReleaseTime']),
       'other': None,
       'notes': None
     }
