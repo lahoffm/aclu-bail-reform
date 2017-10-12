@@ -19,27 +19,27 @@ Required packages are listed in **requirements.txt**.
 The following commands create a CSV file (*dekalb-\*.csv*) in the **data** folder. Jail records are sorted by inmate booking number. An inmate may have duplicate records if there are multiple charges. 
 
 #### Default
-`
+```
 python webscraper.py
-`
+```
 By default, this command scrapes records starting from index 0 for 100 results.
 
 #### Today
-`
+```
 python webscraper.py today
-`
+```
 This command scrapes all records, if any, for the current day (*e.g. 2017-10-01T00:00:00.000Z-2017-10-01T23:59:59.000Z*). If this command is used before any inmate booking, it will respond with 'No results found.'
 
 #### Custom Date
-`
+```
 python webscraper.py custom 1900-01-01
-`
+```
 This comand scrapes all records for a custom date. The custom date must be specified as an argument in YYYY-MM-DD format. If there are no records for a specified date, it will respond with 'No resuts found.'
 
 #### All Records
-`
+```
 python webscraper.py all 0 100
-`
+```
 This command scrapes records starting from an index number for a specified number of results.
 
 | Column Name       | Data Available
