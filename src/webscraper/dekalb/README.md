@@ -12,11 +12,11 @@ The purpose of this project is to help build a case for the [ACLU Bail Reform Pr
 pip install -r requirements.txt
 ```
 
-Required packages are listed in *requirements.txt*.
+Required packages are listed in [`requirements.txt`](https://github.com/rimjieun/aclu-bail-reform/blob/master/src/webscraper/dekalb/requirements.txt).
 
 ## Commands & Usage
 
-- The following commands create a CSV file (dekalb-\*.csv) in the *data* folder.
+- The following commands output a CSV file (dekalb-\*.csv) in the [`data`](https://github.com/rimjieun/aclu-bail-reform/tree/master/data) folder.
 - Each row is a jail record. Jail records are sorted by inmate booking number.
 - An inmate may have multiple records if there are multiple charges.
 - Some records may be missing due to unknown circumstances. Jail IDs for missing records will be logged at the end of the scrape.
