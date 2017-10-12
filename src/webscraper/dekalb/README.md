@@ -63,22 +63,26 @@ Scrapes records starting from index 0 for 100 records.
 | booking_timestamp               | ✓ |
 | release_timestamp               | ✓ |
 | processing_numbers <sup>2</sup> | ✓ |
-| agency                          | ✓ |
+| agency <sup>3</sup>             | ✓ |
 | facility                        | ✓ |
-| charges                         | ✓ |
-| severity                        | ✓ |
-| bond_amount                     | ✗ |
-| current_status                  | ✗ |
+| charges \*                      | ✓ |
+| severity \*                     | ✓ |
+| bond_amount \*                  | ✓ |
+| current_status \*               | ✓ |
 | court_dates                     | ✗ |
 | days_jailed                     | ✓ |
-| other \*                        | ✓ |
+| other <sup>4</sup>              | ✓ |
 | notes                           | ✗ |
 
-<sup>1</sup> Same as booking number.
+<sup>1</sup> Booking number.
 
-<sup>2</sup> Processing numbers include SO#, booking number, jail ID, and arrest ID.
+<sup>2</sup> Contains SO#, booking number, jail ID, and arrest ID.
 
-\* **Other available data**: charge count, bond type, charge disposition (e.g. 'Bonded Out', 'Dismissed'), height, weight, hair, eyes, charge warrant number, offense date, arrest date, arresting agency. These data can be added upon request.
+<sup>3</sup> Arresting agency.
+
+<sup>4</sup> **Other available data**: charge count, charge warrant number, height, weight, hair, eyes, offense date, arrest date. These data can be added upon request.
+
+\* *charges*, *severity*, *bond_amount* and *current_status* are parallel data. *bond_amount* contains bond type only. *current_status* is charge disposition. 
 
 ## Contributing
 If you want to [contribute](https://github.com/lahoffm/aclu-bail-reform/blob/master/CONTRIBUTING.md) to the ACLU Bail Reform Project, contact [project owner](https://github.com/lahoffm/aclu-bail-reform).

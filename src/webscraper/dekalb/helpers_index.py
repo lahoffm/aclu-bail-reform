@@ -40,10 +40,18 @@ def get_csv_timestamp():
   h,mi,s = re.split(':', time)
   return '_'.join([y, mo, d, h, mi, s])
 
+def parse_sex(sex):
+  if sex == 'Male':
+    return 'm'
+  else:
+    return 'f'
+
 def parse_charges(charges):
   charges_dict = {
     'desc': [],
-    'sev': []
+    'sev': [],
+    'disp': [],
+    'bond': []
   }
   terms = {
     'misd': ['MISD', 'MISDEMEANOR', 'misd', 'misdemeanor'],
@@ -63,15 +71,26 @@ def parse_charges(charges):
         charges_dict['sev'].append('felony')
     else:
       charges_dict['sev'].append(' ')
+
+    if charge['Disposition'] == None:
+      charges_dict['disp'].append(' ')
+    else:
+      charges_dict['disp'].append(charge['Disposition'])
+
+    if charge['BondType'] == None:
+      charges_dict['bond'].append(' ')
+    else:
+      charges_dict['bond'].append(charge['BondType'])
+
   return charges_dict
 
 
 def get_ids_str(so, booking, jail, arrest):
   return ' | '.join([
-    'so#=' + str(so),
-    'booking#=' + str(booking),
-    'jail_id=' + str(jail),
-    'arrest_id=' + str(arrest)
+    'SO# ' + str(so),
+    'Booking Number ' + str(booking),
+    'Jail ID' + str(jail),
+    'Arrest ID ' + str(arrest)
   ])
 
 def get_dob_str(dob):
