@@ -2,7 +2,7 @@
 
 This Python-based web scraper scrapes Dekalb County jail records from the [Dekalb County - Judicial Information System](https://ody.dekalbcountyga.gov/app/JailSearch/#/search) website.
 
-The purpose of this project is to help build a case for the [ACLU Bail Reform Project](file:///C:/Users/Jieun/Downloads/ACLU-Bail-Reform-One-pager.pdf) in Georgia.
+The purpose of this project is to help build a case for the [ACLU Bail Reform Project](file:///C:/Users/Jieun/Downloads/ACLU-Bail-Reform-One-pager.pdf) in the state Georgia.
 
 ## Installing Requirements
 
