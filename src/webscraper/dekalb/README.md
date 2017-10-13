@@ -35,3 +35,4 @@
 | notes             | ✗ |
 
 \*inmate_type, arrest_id, arresting_agency, jail_id, charge_count, so#
+
