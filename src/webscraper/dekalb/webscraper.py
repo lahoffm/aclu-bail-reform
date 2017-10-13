@@ -90,7 +90,7 @@ with open('./../../../data/dekalb-' + label + '-' + helpers.get_csv_timestamp() 
       'inmate_firstname': name.first,
       'inmate_middlename': name.middle,
       'inmate_sex': helpers.parse_sex(jailing_data['DefendantGender']),
-      'inmate_race': jailing_data['DefendantRace'].lower(),
+      'inmate_race': jailing_data['DefendantRace'],
       'inmate_age': helpers.get_age(jailing_data['DefendantDOBString']),
       'inmate_dob': helpers.get_dob_str(jailing_data['DefendantDOBString']),
       'inmate_address': ', '.join(jailing_data['DefendantAddress']),
