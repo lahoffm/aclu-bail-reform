@@ -89,3 +89,4 @@ Scrapes records starting from index 0 for 100 records.
 ## Contributing
 If you want to [contribute](https://github.com/lahoffm/aclu-bail-reform/blob/master/CONTRIBUTING.md) to the ACLU Bail Reform Project, contact [project owner](https://github.com/lahoffm/aclu-bail-reform).
 
+
