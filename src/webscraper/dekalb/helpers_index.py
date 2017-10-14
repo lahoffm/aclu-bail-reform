@@ -43,8 +43,10 @@ def get_csv_timestamp():
 def parse_sex(sex):
   if sex == 'Male':
     return 'm'
-  else:
+  elif sex == 'Female':
     return 'f'
+  else:
+    return None
 
 def parse_charges(charges):
   charges_dict = {
