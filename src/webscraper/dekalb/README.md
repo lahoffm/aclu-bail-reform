@@ -16,7 +16,7 @@ Required packages are listed in [`requirements.txt`](https://github.com/rimjieun
 
 ## Commands & Usage
 
-- The following commands output a CSV file (dekalb-\*.csv) in the [`data`](https://github.com/rimjieun/aclu-bail-reform/tree/master/data) folder.
+- The following commands output a CSV file (dekalb-\*.csv) into the [`data`](https://github.com/rimjieun/aclu-bail-reform/tree/master/data) folder.
 - Each row is a jail record. Jail records are sorted by inmate booking number.
 - An inmate may have multiple records if there are multiple charges.
 - Some records may be missing due to unknown circumstances. Jail IDs for missing records will be logged at the end of the scrape.
@@ -87,4 +87,4 @@ Scrapes records starting from index 0 for 100 records.
 \* *charges*, *severity*, *bond_amount* and *current_status* are parallel data. *bond_amount* contains bond type only. *current_status* is charge disposition. 
 
 ## Contributing
-If you want to [contribute](https://github.com/lahoffm/aclu-bail-reform/blob/master/CONTRIBUTING.md) to the ACLU Bail Reform Project, contact [project owner](https://github.com/lahoffm/aclu-bail-reform).
+If you want to [contribute](https://github.com/lahoffm/aclu-bail-reform/blob/master/CONTRIBUTING.md) to the ACLU Bail Reform Project, contact the [project organizer](https://github.com/lahoffm/aclu-bail-reform).
