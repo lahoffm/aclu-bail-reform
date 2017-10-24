@@ -57,7 +57,7 @@ if len(inmate_data) == 0:
   print('No records found.')
   sys.exit()
 
-with open('./../../../data/dekalb-' + label + '-' + helpers.get_csv_timestamp() + '.csv', 'w', newline='') as new_file:
+with open('./../../../data/dekalb_' + label + '_' + helpers.get_csv_timestamp() + '.csv', 'w', newline='') as new_file:
 
   csv_writer = csv.DictWriter(new_file, fieldnames=helpers.fieldnames, delimiter=',', dialect='excel')
 

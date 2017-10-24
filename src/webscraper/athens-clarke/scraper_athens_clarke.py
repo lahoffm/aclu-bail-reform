@@ -26,7 +26,7 @@ class ScraperAthensClarke(object):
         self.headers = {'User-Agent' : response.request.headers['User-Agent'] + ' (Contact lahoffm@gmail.com, https://github.com/lahoffm/aclu-bail-reform)'}
         self.csv_dir = '../../../data' # where to write data
         self.df = [] # will be a dataframe later. self.df is created for inmate roster, dumped to file, recreated for booking report, dumped to file
-        
+        self.multi_booking_str = 'Inmate booked >1 times over last 7 days. Kept only most recent booking timestamp. Because of this, multiple subpages for this inmate, but only saved data for one subpage. Consider ignoring this datapoint.'
         
         
     def scrape_all(self):
@@ -94,9 +94,9 @@ class ScraperAthensClarke(object):
         # Replace semicolons so ETL code doesn't think they are multiple processing numbers
         # Format is 'Case # XXX | Police case # XXX'. If one or both are missing there is still a ' | '
         #   so ETL parser knows what's missing.
-        self.df['processing_numbers'] = 'Case # ' + df_main['CASE NUMBER'].str.replace(' | ',' : ')
+        self.df['processing_numbers'] = 'Case # ' + df_main['CASE NUMBER'].str.replace('|',':')
         self.df['processing_numbers'].fillna('', inplace=True)
-        tmp = ' | Police case # ' + df_main['POLICE CASE#'].str.replace(' | ',' : ')
+        tmp = ' | Police case # ' + df_main['POLICE CASE#'].str.replace('|',':')
         tmp.fillna(' | ', inplace=True)
         self.df['processing_numbers'] = self.df['processing_numbers'].str.cat(tmp)
         
@@ -176,7 +176,7 @@ class ScraperAthensClarke(object):
     
         # Set charge - at present, there's 1 row per charge but will split/apply/combine later so it's 1 row per inmate
         df_main['CHARGE'].fillna('', inplace=True) # this happens sometimes, probably as they are in process of updating a person's charge
-        self.df['charges'] = df_main['CHARGE'].str.replace(' | ',' : ') # convert so we can later chain charges with ' | '
+        self.df['charges'] = df_main['CHARGE'].str.replace('|',':') # convert so we can later chain charges with ' | '
     
         # Set charge severity - ignoring "Local ordinance" because it's rare
         df_main.fillna('', inplace=True) # all columns from this point forward probably have NaN so fill with ''
@@ -185,21 +185,21 @@ class ScraperAthensClarke(object):
         self.df['severity'] = df_main['CRIME TYPE']
         
         # Set court jurisdiction in 'other' field
-        self.df['other'] = pd.Series(['Court jurisdiction: ']*df_main.shape[0]).str.cat(df_main['COURT JURISDICTION'].str.replace(' | ',' : '))
+        self.df['other'] = pd.Series(['Court jurisdiction: ']*df_main.shape[0]).str.cat(df_main['COURT JURISDICTION'].str.replace('|',':'))
         self.df.loc[self.df['other']=='Court jurisdiction: ','other'] = ''
         
         # Set bond_amount - will add to this when scraping subpages
         self.format_bond_amount(df_main)
-        df_main['BONDING COMPANY'] = df_main['BONDING COMPANY'].str.replace(' | ',' : ')
+        df_main['BONDING COMPANY'] = df_main['BONDING COMPANY'].str.replace('|',':')
         self.df['bond_amount'] = df_main['BOND AMOUNT'].str.cat([["( Bonding company:"]*df_main.shape[0],\
                                                              df_main['BONDING COMPANY'],\
                                                              [')']*df_main.shape[0]],\
                                                              sep=' ')
 
         # Set case number & warrant number - see comments in scrape_main_roster()
-        self.df['processing_numbers'] = 'Warrant # ' + df_main['WARRANT #'].str.replace(' | ',' : ')
+        self.df['processing_numbers'] = 'Warrant # ' + df_main['WARRANT #'].str.replace('|',':')
         self.df.loc[self.df['processing_numbers']=='Warrant # ','processing_numbers'] = ''
-        tmp = ',Police case # ' + df_main['POLICE CASE#'].str.replace(' | ',' : ')
+        tmp = ',Police case # ' + df_main['POLICE CASE#'].str.replace('|',':')
         tmp[tmp==',Police case # '] = ',' # split with ',' instead of ' | ' because each charge has its own warrant/case#
         self.df['processing_numbers'] = self.df['processing_numbers'].str.cat(tmp)
    
@@ -231,7 +231,9 @@ class ScraperAthensClarke(object):
             assert nlinks == self.df.shape[0], "Number of hrefs != number of table entries"
         else:
             self.df['inmate_id'] = ''  # The booking page MID# differs from inmate detail MID#. We will use the subpage MID# for consistency with "current roster" page
-        self.df['notes'] = 'Failed to load inmate detail page. Leaving some fields blank' # will be erased ONLY when page successfully loads
+        
+        self.df['notes'].fillna('Failed to load inmate detail page. Leaving some fields blank', inplace=True) # will be erased ONLY when page successfully loads
+                                                                                                              # nb compress_inmate_rows may have set a couple 'notes' fields already
         
         i = 0
         for a in soup.find_all('a', href=True): # scrape each subpage (which have additional details for a single inmate)
@@ -286,6 +288,7 @@ class ScraperAthensClarke(object):
                 ix = tmp.index[(tmp['inmate_name']==inmate_name) & (tmp['booking_timestamp']==booking_timestamp)]
                 assert len(ix) == 1, 'Should be exactly one matching inmate in main page'
 
+
             # Set inmate ID
             if flag=='booking': # roster site has same inmate id on main page & subpage.
                 # booking site's inmate ids differ on main page & subpages but to be consistent
@@ -323,13 +326,13 @@ class ScraperAthensClarke(object):
 
             # Set charges, separated by ' | ' even if charge description is empty string
             if flag=='roster': # booking site had this in main page
-                self.df.loc[ix,'charges'] = df_sub2['CHARGE DESCRIPTION'].str.replace(' | ',' : ').str.cat(sep=' | ')
+                self.df.loc[ix,'charges'] = df_sub2['CHARGE DESCRIPTION'].str.replace('|',':').str.cat(sep=' | ')
 
             # Set bond amount for each charge, separated by ' | '.
             if flag=='roster': # booking site had this in main page
                 self.format_bond_amount(df_sub2)
-                df_sub2['BOND REMARKS'] = df_sub2['BOND REMARKS'].str.replace(' | ',' : ')
-                df_sub2['BOND LAST UPDATED'] = df_sub2['BOND LAST UPDATED'].str.replace(' | ',' : ')
+                df_sub2['BOND REMARKS'] = df_sub2['BOND REMARKS'].str.replace('|',':')
+                df_sub2['BOND LAST UPDATED'] = df_sub2['BOND LAST UPDATED'].str.replace('|',':')
                 self.df.loc[ix,'bond_amount'] = df_sub2['BOND AMOUNT'].str.cat([df_sub2['BOND REMARKS'],
                                                                           [' Bond last updated']*df_sub2.shape[0],
                                                                           df_sub2['BOND LAST UPDATED']],
@@ -350,10 +353,13 @@ class ScraperAthensClarke(object):
 
             # Set status for each charge like 'SENTENCED'. For this site, most statuses are blank.
             if flag=='roster': # nb see comment above for why we don't do this for flag==booking
-                self.df.loc[ix, 'current_status'] = df_sub2['DISPOSITION'].str.replace(' | ',' : ').str.cat(sep=' | ')
+                self.df.loc[ix, 'current_status'] = df_sub2['DISPOSITION'].str.replace('|',':').str.cat(sep=' | ')
                         
             # Set notes
-            self.df.loc[ix,'notes'] = ''
+            if self.df.loc[ix,'notes'].values != self.multi_booking_str:
+                self.df.loc[ix,'notes'] = ''
+            else:
+                print(self.multi_booking_str)
 
             time.sleep(self.sleep_sec)
     
@@ -434,7 +440,8 @@ class ScraperAthensClarke(object):
         inmate_race = df_main['RACE'].str.lower() # don't have to convert 'asian' or 'white' because already listed that way
         inmate_race = inmate_race.str.replace('black/african american', 'black')\
                                  .str.replace('hispanic or latino', 'hispanic')\
-                                 .str.replace('middle eastern decent', 'middle-eastern') # they had a typo
+                                 .str.replace('middle eastern decent', 'middle-eastern')\
+                                 .str.replace('unknown', '') # leave race blank in this case. previous line: they had a "descent" typo
         assert np.isin(inmate_race.unique(), np.array(['asian','white','black','hispanic','middle-eastern',''])).all(),\
                      "One or more of these races not converted to standard format: " + str(inmate_race.unique())
         self.df['inmate_race'] = inmate_race
@@ -489,12 +496,17 @@ class ScraperAthensClarke(object):
         assert df_inmate['inmate_race'].nunique()==1, errmsg
         assert df_inmate['inmate_age'].nunique()==1, errmsg
         assert df_inmate['inmate_dob'].nunique()==1, errmsg
-        assert df_inmate['booking_timestamp'].nunique()==1, errmsg
-    
+
         # Copy it to avoid possible side effects
         # See https://pandas.pydata.org/pandas-docs/stable/generated/pandas.core.groupby.GroupBy.apply.html
         df_onerow = df_inmate.iloc[0,:].copy().to_frame().transpose()
-    
+
+        # Happens for "arrest from last 7 days" page if inmate was arrested, released, re-arrested in same week
+        # In that case, pick the most recent booking
+        if df_inmate['booking_timestamp'].nunique()>1: 
+            df_onerow['booking_timestamp'] = max(pd.to_datetime(df_inmate['booking_timestamp'], format='%Y-%m-%d %H:%M:%S EST')).strftime('%Y-%m-%d %H:%M:%S EST')
+            df_onerow['notes'] = self.multi_booking_str
+            
         # Set the fields that are allowed to have different entries (one entry per charge), separated by ' | '
         df_onerow['release_timestamp'] = df_inmate['release_timestamp'].str.cat(sep=' | ')
         df_onerow['processing_numbers'] = df_inmate['processing_numbers'].str.cat(sep=' | ')
