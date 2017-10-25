@@ -33,13 +33,19 @@ first_row = booking_rows[0]
 row_link = first_row.find("a", class_="poplink")
 row_link_id = row_link["id"]
 
-try:
-    row_link_elem = driver.find_element_by_id(row_link_id)
-    row_link_elem.click()
-    
-except NoSuchElementException as error:
-    print("Error: {0}".format(error))
-    exit()
+for attempt in range(0,2):
+    try:
+        row_link_elem = driver.find_element_by_id(row_link_id)
+        row_link_elem.click()
+        WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.ID, "mpeDetail_foregroundElement")))
+    except NoSuchElementException as error:
+        print("Error: {0}".format(error))
+        exit()
+    except StaleElementReferenceException:
+        print("Dom updated, retrying click")
+        continue
+    print("click was successful, breaking out")
+    break
 
 booking_number = ""
 full_name = ""
@@ -64,15 +70,26 @@ for attempt in range(0,3):
         charge_rows_count = len(charge_rows) - 1 #Subtract column header
         for charge_num in range(0, charge_rows_count):
             charge_selector = "InmateData1_dlChgs_lblChg_{0}".format(charge_num)
+            charge_bond_selector = "InmateData1_dlChgs_lblBondAmt_{0}".format(charge_num)
+            charge_status_selector = "InmateData1_dlChgs_lblDisp_{0}".format(charge_num)
+
             charge = driver.find_element_by_id(charge_selector).get_attribute("innerText")
-            print(charge)
-        
+            charge_bond = driver.find_element_by_id(charge_bond_selector).get_attribute("innerText")
+            charge_status = driver.find_element_by_id(charge_status_selector).get_attribute("innerText")
+            
+            charges.append(charge)
+            charges_bond.append(charge_bond)
+            charges_status.append(charge_status)
     except StaleElementReferenceException:
         print("Dom updated, trying again")
         continue
-    
+    print("Captured info, breaking out")
     break
-    
+
+print(booking_number, full_name, arrest_date, race, sex, age)
+print(charges)
+print(charges_bond)
+print(charges_status)
 
 county_name = "Richmond"
 timestamp = datetime.now()
@@ -80,10 +97,6 @@ url = "http://appweb2.augustaga.gov/InmateInquiry/AltInmatesOnline.aspx"
 inmate_id = ""
 inmate_lastname = ""
 inmate_firstname = ""
-
-print(booking_number, full_name, arrest_date, race, sex, age)
-
-#test
 
 #parse all rows
 
