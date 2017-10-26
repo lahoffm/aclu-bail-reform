@@ -3,7 +3,7 @@
     * Doesn't check for everything that could go wrong!
     * self.shortDescription() prints first line of method's docstring
         so logfile has more info of what was tested
-    * To run on command line (looks for csv_fulename.csv in ../data folder)
+    * To run on command line (looks for csv_filename.csv in ../data folder)
         python csv_format_tester.py csv_filename.csv
 '''
 import unittest
@@ -160,7 +160,7 @@ class TestCSV(unittest.TestCase):
     def test_notes(self):
         """ """
         d = TestCSV.csv['notes']
- 
+
 
 if __name__ == '__main__':
     csv_fname = '../data/' + sys.argv[-1] # Last command line arg must be CSV file to test, in ../data folder
