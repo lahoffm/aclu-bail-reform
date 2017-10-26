@@ -60,4 +60,4 @@
 | court_dates       | ✗ |
 | days_jailed       | ✓ |
 | other             | ✗ |
-| notes				| To parse charges from PDF, I had to make a dictionary of which charges are on one line or two lines. Says if one or more of the inmate's charges are not in the list. If so, it assumes it's a one-line charge. I recommend to add such charges to the dictionary in `webscraper_main.py` |
+| notes				| ✗ |

@@ -5,8 +5,9 @@ import tabula
 import pandas as pd
 import numpy as np
 from datetime import datetime
+from warnings import warn
 
-# Get PDF, write to data dir so we can diagnose errors if something goes wrong.
+# Get PDF, write to data dir for diagnosis if something goes wrong.
 print('Running Glynn county webscraper')
 url = 'http://www.glynncountysheriff.org/data/Population.pdf'
 response = requests.get(url, allow_redirects=True)
@@ -27,7 +28,7 @@ print('Wrote ' + pdf_fname + ' to ' + data_dir)
 # columns = x coordinates of column boundaries
 # guess = False because we want it to grab all the data in the bounding box,
 #         not guess which data to include.
-print('Converting PDF to data frame...')
+print('Loading PDF...')
 df_pdf = tabula.read_pdf(data_dir + '/' + pdf_fname, pages='all', guess=False,
                           pandas_options={'dtype':{"Inmate's Name" : str, # parse all columns as strings
                                                    'Age' :           str,
@@ -35,21 +36,45 @@ df_pdf = tabula.read_pdf(data_dir + '/' + pdf_fname, pages='all', guess=False,
                                                    'Days' :          str,
                                                    'Charge' :        str,
                                                    'Charges' :       str}},
-                     area=[79.695, 13.365, 576.675, 765.765], 
+                     area=[79.695, 13.365, 576.675, 765.765],
                      columns=[133.155, 208.395, 277.695, 327.195, 406.395, 765.765])
 assert all(df_pdf.columns==["Inmate's Name", 'Age', 'Booking', 'Days', 'Charge', 'Charges']), 'Column names have changed'             
 assert df_pdf.iloc[0,:].str.cat()=='Race / GenderDateJailedDegree', 'Column names have changed'
 
+# Load charges into a Series.
+# Although df_pdf has the same charges text, there's no way to tell which charges are one-liners or two-liners.
+# That's because two-line charges are put into two separate cells in the dataframe.
+# Unfortunately, this means 2-line charges look identical to one-line charges.
+# Fortunately, by selecting just the Charges column and using 'lattice' mode, we can load each charge into a single cell.
+# Two-line charges are separated by '\r' - later code will make use of this fact.
+# We can't use lattice mode to load df_pdf because the lattice structure isn't consistent across columns.
+# NB lattice is faintly visible as thin white lines when you open the PDF using tabula.exe
+charges = tabula.read_pdf(data_dir + '/' + pdf_fname, pages='all', guess=False, lattice=True,
+                     pandas_options={'header': None, # for Glynn's PDF, header on 1st page isn't part of the lattice
+                                     'names': ['blank', 'charges'], # blank column is all NaN
+                                     'dtype':{'charges': str}},
+                     area=[79.695, 406.395, 576.675, 765.765], # top (y), left (x), bottom (y), right (x) of bounding box containing charges on each page
+                     columns=[406.395, 765.765]) # make column boundary explicit, prevents splitting up charges into 2 columns
+charges = charges['charges']
+
 # Initial dataframe formatting
+print('Converting PDF to CSV format...')
 df_pdf.columns = ['inmate_name', 'age_race_sex','booking_date','days_jailed','current_status','charges'] # easier to work with
 total_inmates = df_pdf.iloc[-1,0]
 assert total_inmates.startswith('Total Inmates: '), 'PDF does not end with a count of total inmates'
 total_inmates = int(total_inmates[15:])
 df_pdf = df_pdf.iloc[1:-1,:] # drop 1st row, it just has more header text. drop last row, it just lists total inmates
-df_pdf.reset_index(drop=True, inplace=True) # so indexes equal to self.df indexes
+df_pdf.reset_index(drop=True, inplace=True) # so indexes equal to self.df indexes and a loop below can index by 0, 1, ...
 
 # For debugging
 #df_pdf.to_csv('debug.csv', index=True, line_terminator='\n')
+
+# Checks that # of charges loaded is consistent.
+# First, we get total number of lines in df_pdf containing the descriptive text.
+# Second, we know df_pdf splits 2-line charges across two cells so we can't just compare it to charges.shape[0].
+# Therefore we add the number of '\r' in charges since this indicates 2-line charges.
+# This also makes sure there's no 3-line charges - we would miss adding the second '\r' and assertion would fail
+assert sum(df_pdf['charges'].notnull()) == (charges.shape[0] + sum(charges.str.contains('\r'))), '# charges when loading entire pdf != # charges when loading just the "Charges" column'
 
 # Put inmate names on a single line.
 # Takes advantage of pdf's format that age_race_sex always has 2 rows, so
@@ -73,9 +98,79 @@ inmate_id = df_pdf['inmate_name'].str.cat([df_pdf['age_race_sex'], df_pdf['booki
 all_id = inmate_id[name_idx]
 idx_to_delete = all_id[all_id==all_id.shift(1)].index # if an inmate id matches the previous id, delete that row of duplicated information
 df_pdf.loc[idx_to_delete,['inmate_name','age_race_sex','booking_date','days_jailed']] = np.nan # but don't delete current_status & charges, those aren't duplicated!
-assert sum(df_pdf['inmate_name'].notnull()) == total_inmates, 'After processing, total inmates in dataframe != total inmate count at bottom of PDF'
+num_inmates = sum(df_pdf['inmate_name'].notnull())
+if num_inmates != total_inmates: # Expecting this to be rare.
+    # Probably happens if loading PDF when they are in the middle of updating their database.
+    # Will hardly affect data analysis if 1/500 inmates in 1/10 downloaded PDFs has this problem, best to just proceed.
+    warn("After preprocessing, # inmates in dataframe ("  + str(num_inmates) + ') != total inmate count at bottom of PDF (' +
+         str(total_inmates) + "). This probably happened because one or more booking dates weren't filled in." +
+         ' As a result, at least one inmate will mistakenly be assigned the charges that should go to another inmate.')
 
-# TODO put charge degree and charges on a single line and extract charge severity
+# Put each charge on a single line in df_pdf - comments earlier explain why we have to do it this way.
+j = 0
+charges_oneline = charges.str.replace('\r', ' ')
+for i in range(len(charges)):
+    if '\r' in charges[i]: # two-line charge
+        firstline = charges[i][0:charges[i].find('\r')]
+    else: # one-line charge
+        firstline = charges[i]
+    while True: # go to next line matching current charge
+        if df_pdf.loc[j,'charges']==firstline:
+            break
+        j += 1
+    if '\r' in charges[i]: # must concatenate for two-line charge
+        df_pdf.loc[j,'charges'] = df_pdf.loc[j,'charges'] + ' ' + df_pdf.loc[j+1,'charges']
+        df_pdf.loc[j+1,'charges'] = ''
+    assert charges_oneline[i] == df_pdf.loc[j,'charges'], 'When 2-line charge was concatenated to one line, it did not match the expected one-line charge'
+    j += 1
+
+# Put each current status on a single line. Most already are, but some are on 2 or 3 lines.
+def combine_twoline_status(str1, str2, oneOption=True): # make two-line status to a one-line status
+    idx = df_pdf.index[df_pdf['current_status'] == str1]
+    idx2 = df_pdf.index[df_pdf['current_status'] == str2]
+    assert all(df_pdf.loc[idx2-1, 'current_status'] == str1), "Row before '" + str2 + "' should be '" + str1 + "'"
+    if oneOption: # only check where str1 should always be followed by str2
+        assert all(df_pdf.loc[idx+1, 'current_status'] == str2), "Row after '" + str1 + "' should be '" + str2 + "'"
+    df_pdf.loc[idx2-1, 'current_status'] = str1 + ' ' + str2
+    df_pdf.loc[idx2, 'current_status'] = ''
+
+df_pdf['current_status'].fillna('', inplace=True)
+assert np.isin(df_pdf['current_status'].unique(), np.array(['',
+                                                            'Dismissed',
+                                                            'Sentenced',
+                                                            'Nolle Prosequi',
+                                                            'Court Release',
+                                                            'Time Served',
+                                                            'Municipal Court', # part of two-liner
+                                                            'Release', # part of two-liner
+                                                            'No Warrant', # part of two-liner
+                                                            'Received', # part of two-liner
+                                                            'Erroneous Release',
+                                                            'Transferred',
+                                                            'Posted Bond',
+                                                            'Probation', # part of two-liner
+                                                            'Revocation', # part of two-liner
+                                                            'Probation Expired',
+                                                            'Charges Amended', # part of two or three-liner
+                                                            'at Preliminary', # part of three-liner
+                                                            'Hearing', # part of three-liner
+                                                            'at Superior Court', # part of two-liner
+                                                            'Parole Release'])).all(), "Invalid format for charges' current status."
+combine_twoline_status('Municipal Court', 'Release')
+combine_twoline_status('No Warrant', 'Received')
+combine_twoline_status('Probation', 'Revocation')
+combine_twoline_status('at Preliminary', 'Hearing') # first combine line 2+3 of a three-line status
+combine_twoline_status('Charges Amended', 'at Preliminary Hearing', oneOption=False) # can be followed either by 'at Preliminary Hearing' or 'at Superior Court'
+combine_twoline_status('Charges Amended', 'at Superior Court') # After the last statement, this should be only option left
+
+# Extract charge severity (not all charges list this)
+df_pdf['severity'] = ''
+felony_mask = df_pdf['charges'].str.lower().str.contains('felony', na=False)
+misdemeanor_mask = df_pdf['charges'].str.lower().str.contains('misdemeanor', na=False)
+df_pdf.loc[felony_mask,'severity'] = 'felony'
+df_pdf.loc[misdemeanor_mask,'severity'] = 'misdemeanor' 
+
+raise Exception('exit')
 
 # Get rid of non-null rows since each inmate's info is now completely on one line.
 df_pdf = df_pdf.loc[df_pdf['inmate_name'].notnull(),:].copy()
