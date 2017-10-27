@@ -106,7 +106,7 @@ if num_inmates != total_inmates: # Expecting this to be rare.
          str(total_inmates) + "). This probably happened because one or more booking dates weren't filled in." +
          ' As a result, at least one inmate will mistakenly be assigned the charges that should go to another inmate.')
 
-# Put each charge on a single line in df_pdf - comments earlier explain why we have to do it this way.
+# Put each charge on a single line - comments earlier explain why we have to do it this way.
 j = 0
 charges_oneline = charges.str.replace('\r', ' ')
 for i in range(len(charges)):
@@ -124,8 +124,9 @@ for i in range(len(charges)):
     assert charges_oneline[i] == df_pdf.loc[j,'charges'], 'When 2-line charge was concatenated to one line, it did not match the expected one-line charge'
     j += 1
 
-# Put each current status on a single line. Most already are, but some are on 2 or 3 lines.
-def combine_twoline_status(str1, str2, oneOption=True): # make two-line status to a one-line status
+# Helper function to put each current status on one line
+# Makes two-line status to a one-line status
+def combine_twoline_status(str1, str2, oneOption=True): # 
     idx = df_pdf.index[df_pdf['current_status'] == str1]
     idx2 = df_pdf.index[df_pdf['current_status'] == str2]
     assert all(df_pdf.loc[idx2-1, 'current_status'] == str1), "Row before '" + str2 + "' should be '" + str1 + "'"
@@ -134,6 +135,7 @@ def combine_twoline_status(str1, str2, oneOption=True): # make two-line status t
     df_pdf.loc[idx2-1, 'current_status'] = str1 + ' ' + str2
     df_pdf.loc[idx2, 'current_status'] = ''
 
+# Put each current status on a single line. Most already are, but some are on 2 or 3 lines.
 df_pdf['current_status'].fillna('', inplace=True)
 assert np.isin(df_pdf['current_status'].unique(), np.array(['',
                                                             'Dismissed',
@@ -170,12 +172,34 @@ misdemeanor_mask = df_pdf['charges'].str.lower().str.contains('misdemeanor', na=
 df_pdf.loc[felony_mask,'severity'] = 'felony'
 df_pdf.loc[misdemeanor_mask,'severity'] = 'misdemeanor' 
 
-raise Exception('exit')
+# Helper function to compress each inmate's data into one row.
+# Combines the inmate's charges, current_status, and severity into one line, separated by ' | '
+# The inmate's remaining data columns are already on the first row because of processing above.
+# Return dataframe with one row containing all the inmate's data
+def compress_inmate_rows(df_inmate):
+    # Copy it to avoid possible side effects
+    # See https://pandas.pydata.org/pandas-docs/stable/generated/pandas.core.groupby.GroupBy.apply.html
+    df_onerow = df_inmate.iloc[0,:].copy().to_frame().transpose()
+    keep_rows = df_inmate['charges'] != '' # Don't keep empty charges rows.
+                                           # Earlier code put current_status and severity on same row as the corresponding charge
+    df_onerow['current_status'] = df_inmate.loc[keep_rows, 'current_status'].str.cat(sep=' | ')
+    df_onerow['charges'] = df_inmate.loc[keep_rows, 'charges'].str.cat(sep=' | ')
+    df_onerow['severity'] = df_inmate.loc[keep_rows, 'severity'].str.cat(sep=' | ')
+    return df_onerow
 
-# Get rid of non-null rows since each inmate's info is now completely on one line.
-df_pdf = df_pdf.loc[df_pdf['inmate_name'].notnull(),:].copy()
-df_pdf.fillna('', inplace=True)
+# Compress each inmate's data into one row via pandas split/apply/combine.
+# Set a unique ID for each of the inmate's rows, group by inmate, compress to one row.
+# Each group has all the data for one inmate.
+name_idx = df_pdf.index[df_pdf['inmate_name'].notnull()]
+assert name_idx[0]==0, "First inmate's name must be on first row"
+df_pdf['inmate_id'] = name_idx[-1] # np.int64. After loop finishes, inmate_id[name_idx[-1]:-1] = id of the last inmate
+for i in range(len(name_idx)-1):
+    df_pdf.loc[name_idx[i] : (name_idx[i+1]-1), 'inmate_id'] = name_idx[i]
+df_pdf.fillna('', inplace=True) # so we save empty columns as '' and compress_inmate_rows selects the right rows
+inmate_groups = df_pdf.groupby('inmate_id', sort=False, as_index=False)
+df_pdf = inmate_groups.apply(compress_inmate_rows)
 df_pdf.reset_index(drop=True, inplace=True) # so indexes equal to df indexes
+df_pdf.drop('inmate_id', axis=1, inplace=True)
 
 # This will go in CSV
 df = pd.DataFrame(np.zeros((df_pdf.shape[0], 25)), columns=[
@@ -257,7 +281,7 @@ df['days_jailed'] = df_pdf['days_jailed']
 df['charges'] = df_pdf['charges']
 
 # Set severity
-df['severity'] = 'not set yet'
+df['severity'] = df_pdf['severity']
 
 # Set status of each charge
 df['current_status'] = df_pdf['current_status']
