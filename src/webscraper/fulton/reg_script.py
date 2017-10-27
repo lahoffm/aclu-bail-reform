@@ -20,10 +20,10 @@ from datetime import datetime
 
 # bring in info from log files
 
-starting_record = 1717250
+starting_record = 1721583
 
 formatted_time = re.sub('[:\-\s]','_',str(datetime.now())[:-7])
-csv_name_string = 'fulton'+'_'+formatted_time+'.csv'
+csv_name_string = '../../../data/fulton'+'_'+formatted_time+'.csv'
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 chrome_path = os.path.join(dir_path,"chromedriver")
@@ -59,9 +59,9 @@ fieldnames = ['county_name',
         ]
 
 with open(csv_name_string, 'a') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writeheader()
-
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames, lineterminator='\n')
+    writer.writeheader()
+    
 while True:
     cur_res = scrape(driver, current_record)
     if cur_res == []:
@@ -72,8 +72,7 @@ while True:
         par_res = {}
         par_res['notes'] = ''
         par_res['county_name'] = 'fulton'
-        # not exactly the timestamp we wanted but this was driving me crazy
-        par_res['timestamp'] = str(datetime.now())
+        par_res['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S EST')
         
         par_res['inmate_id'] = current_record
         par_res['inmate_lastname'] = cur_res[2][2].split(' ')[0].strip(',')
@@ -103,14 +102,14 @@ while True:
         
         book_date = cur_res[1][1].split(':')[1].strip()
         try:
-            par_res['booking_timestamp'] = str(datetime.strptime(book_date, '%m/%d/%Y'))
+            par_res['booking_timestamp'] = datetime.strptime(book_date, '%m/%d/%Y').strftime('%Y-%m-%d')
         except ValueError:
             par_res['notes'] = par_res['notes']+'no booking date recorded; '
         rel_date = cur_res[1][2].split(':')[1].strip()
         if rel_date == '':
             unreleased.append(current_record)
         else:
-            par_res['release_timestamp'] = str(datetime.strptime(rel_date, '%m/%d/%Y'))
+            par_res['release_timestamp'] = datetime.strptime(rel_date, '%m/%d/%Y').strftime('%Y-%m-%d')
         
         par_res['agency'] = cur_res[0][1]
         par_res['facility'] = cur_res[1][0].split(':')[1]
@@ -127,7 +126,7 @@ while True:
             par_res['bond_amount'] = None
         
         with open(csv_name_string, 'a') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames, lineterminator='\n')
             writer.writerow(par_res)
     
     if empty_counter > 20:
