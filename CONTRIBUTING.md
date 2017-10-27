@@ -14,7 +14,7 @@ We are using **Python 3.6**.
 
 * Each webscraper should output a CSV file into [```data``` folder](https://github.com/lahoffm/aclu-bail-reform/tree/master/data)
 * **CSV name**: ```lowercase-county-name_optional-extra-identifier_yyyy_mm_dd_hh_mm_ss.csv```. The extra identifier is if it's better to make >1 CSV per scrape. For example, if the jail has separate "last 14 day arrests" and "last 14 day releases" it's better to put in 2 CSVs and let ETL code handle that.
-* Use [```csv.writer```](https://docs.python.org/3/library/csv.html#csv.writer) with the [default parameters](https://docs.python.org/3/library/csv.html#csv-fmt-params) so all scrapers handle commas within fields the same way. Line terminator doesn't matter (```\r```, ```\n``` or ```\r\n```)
+* Use [```csv.writer```](https://docs.python.org/3/library/csv.html#csv.writer) with the [default parameters](https://docs.python.org/3/library/csv.html#csv-fmt-params) **(but set `lineterminator='\n'`)** so all scrapers handle commas within fields the same way. *Line terminator should be `\n` so we don't have blank lines between rows when CSV loaded in Windows Excel.*
 * <a name="separator_behavior">space-pipe-space</a> ```' | '``` is separator within a field, like if an inmate has multiple charges.
 	* If a field is supposed to match another field (i.e. ```severity='misdemeanor | misdemeanor | felony'``` matching ```charges='charge1 | charge2 | charge3'```), but data is missing, make empty strings so ETL parser knows how to pair things up. Example for 3 values:
 		* 1st value missing, do: ``` | misdemeanor | felony```
