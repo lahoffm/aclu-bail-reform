@@ -10,7 +10,9 @@ from warnings import warn
 # Get PDF, write to data dir for diagnosis if something goes wrong.
 print('Running Glynn county webscraper')
 url = 'http://www.glynncountysheriff.org/data/Population.pdf'
-response = requests.get(url, allow_redirects=True)
+h = requests.head(url=url) # set user-agent so they can contact us if they don't like how we're scraping
+headers = {'User-Agent' : h.request.headers['User-Agent'] + ' (Contact lahoffm@gmail.com, https://github.com/lahoffm/aclu-bail-reform)'}
+response = requests.get(url, allow_redirects=True, headers=headers)
 timestamp = datetime.now()
 data_dir = '../../../data' # where to write data
 pdf_fname = timestamp.strftime('glynn_%Y_%m_%d_%H_%M_%S.pdf')
