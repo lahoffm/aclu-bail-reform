@@ -6,4 +6,5 @@ import os
 import sys
 
 timestamp = datetime.now().strftime('%Y-%m-%d_time_%H-%M-%S')
-print(os.path.abspath(os.curdir) + '\\logs' + '\\' + sys.argv[1] + '_' + timestamp + '.log')
+county = sys.argv[1].replace('\\','-') # in case we're given subfolders like bibb\jailCrawler - must be in Windows file format \
+print(os.path.abspath(os.curdir) + '\\logs' + '\\' + county + '_' + timestamp + '.log')
