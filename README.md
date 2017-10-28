@@ -1,4 +1,4 @@
-![ACLU of Georgia logo](docs/aclu_of_georgia_logo.png)
+![ACLU of Georgia logo](img/aclu_of_georgia_logo.png)
 
 # ACLU bail reform project
 **Webscraping, ETL and visualization of Georgia county jail statistics.**  
@@ -40,3 +40,6 @@ The 15 priority areas are
 
 ## How to run
 * *Initial code & documentation under construction*
+* Requires **Python 3.6**
+* ETL code will require PostgreSQL server to be running
+* PostgreSQL database layout TBD

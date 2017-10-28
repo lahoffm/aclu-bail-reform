@@ -1,1 +1,3 @@
-# nothing to ignore yet
+*.pyc
+*.csv
+*.pdf
