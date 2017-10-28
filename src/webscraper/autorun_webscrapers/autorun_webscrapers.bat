@@ -19,7 +19,7 @@ for %%i in (%counties%) do (
 
     REM make log file name for county
     python get_log_file_name.py %%i > tmp
-    set /p log_fname=!log_fname! < tmp
+    set /p log_fname= < tmp
     del tmp
     
     REM go to folder containing main webscraper program
@@ -28,25 +28,23 @@ for %%i in (%counties%) do (
     REM "scrape_cmd" is what you would enter on command line if you
     REM wanted to run each scraper individually
     IF "%%i"=="athens-clarke" (
-        set scrape_cmd=!scrape_cmd! python webscraper_main.py
+        set scrape_cmd= python webscraper_main.py
     )
     IF "%%i"=="bibb\jailCrawler" (
-        set scrape_cmd=!scrape_cmd! scrapy crawl bibb
+        set scrape_cmd= scrapy crawl bibb
     )   
     IF "%%i"=="dekalb" (
-        set scrape_cmd=!scrape_cmd! python webscraper.py today
+        set scrape_cmd= python webscraper.py today
     )
     IF "%%i"=="glynn" (
-        set scrape_cmd=!scrape_cmd! python webscraper_main.py
+        set scrape_cmd= python webscraper_main.py
     )
     
     REM Starts new command window with title %%i running command %%scrape_cmd%%
     REM outputting to logfile %%log_fname%%.
     REM 2>&1 is to send stderr to logfile in addition to stdout
     start "%%i" cmd /c "%%scrape_cmd%% >> %%log_fname%% 2>&1"
-    
-    set "log_fname="
-    set "scrape_cmd="
+
     cd %start_dir%
 )
 
