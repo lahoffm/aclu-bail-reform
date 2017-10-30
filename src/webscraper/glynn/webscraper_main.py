@@ -111,19 +111,20 @@ if num_inmates != total_inmates: # Expecting this to be rare.
 # Put each charge on a single line - comments earlier explain why we have to do it this way.
 j = 0
 charges_oneline = charges.str.replace('\r', ' ')
+df_pdf['charges'].fillna('', inplace=True) # to avoid error calling 'replace' on a NaN charge below
 for i in range(len(charges)):
     if '\r' in charges[i]: # two-line charge
         firstline = charges[i][0:charges[i].find('\r')]
     else: # one-line charge
         firstline = charges[i]
     while True: # go to next line matching current charge
-        if df_pdf.loc[j,'charges']==firstline:
+        if df_pdf.loc[j,'charges'].replace(' ','') == firstline.replace(' ',''): # Replace ' ' to fix bug. Sometimes charges are loaded with different # of spaces than df_pdf[charges]
             break
         j += 1
     if '\r' in charges[i]: # must concatenate for two-line charge
         df_pdf.loc[j,'charges'] = df_pdf.loc[j,'charges'] + ' ' + df_pdf.loc[j+1,'charges']
         df_pdf.loc[j+1,'charges'] = ''
-    assert charges_oneline[i] == df_pdf.loc[j,'charges'], 'When 2-line charge was concatenated to one line, it did not match the expected one-line charge'
+    assert charges_oneline[i].replace(' ','') == df_pdf.loc[j,'charges'].replace(' ',''), 'When 2-line charge was concatenated to one line, it did not match the expected one-line charge'
     j += 1
 
 # Helper function to put each current status on one line

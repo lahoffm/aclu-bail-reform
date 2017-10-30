@@ -28,6 +28,10 @@
 		* Select "Run task as soon as possible after a scheduled start is missed"
 		* Select "If the task fails, restart every 5 minutes" and "Attempt to restart up to 10 times"
 	* When you hit OK, you will be prompted for your login password. It won't accept blanks so if you don't have one, [set one](https://www.google.com/search?&q=change+windows+10+account+password).
-
+* Adjust computer's sleep/standby/hibernation settings
+	* Even if you select the right Task Scheduler options, the task still may not run if your computer is set to standby or hibernate.
+	* **Control Panel** -> **Hardware and Sound** -> **Power Options** -> **Edit Plan Settings** -> **Change advanced power settings**
+	* Open all the options and change whatever settings may have caused it to be unresponsive when the task was supposed to run.
+	
 ### Output
 Timestamped logfile in `logs` folder. Logfile contains all stdout and stderr output from whatever code was run.

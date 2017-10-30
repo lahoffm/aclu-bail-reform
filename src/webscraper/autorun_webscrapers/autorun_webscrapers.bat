@@ -15,6 +15,12 @@ REM Counties cannot have spaces, and must match name of the folder containing
 REM the main scrape program for that county.
 set counties= athens-clarke bibb\jailCrawler dekalb glynn
 
+REM We want Dekalb to scrape yesterday's records because
+REM sometimes today's records aren't updated until tomorrow.
+python get_yesterday_date.py > tmp
+set /p yesterday= < tmp
+del tmp
+
 for %%i in (%counties%) do (
 
     REM make log file name for county
@@ -34,7 +40,7 @@ for %%i in (%counties%) do (
         set scrape_cmd= scrapy crawl bibb
     )   
     IF "%%i"=="dekalb" (
-        set scrape_cmd= python webscraper.py today
+        set scrape_cmd= python webscraper.py custom %yesterday%
     )
     IF "%%i"=="glynn" (
         set scrape_cmd= python webscraper_main.py
