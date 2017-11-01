@@ -242,7 +242,8 @@ class ScraperAthensClarke(object):
             #      <a href="##" onclick="window.open('detailsNEW.asp?id=-59091&amp;bid=2017-00004550&amp;pg=1&amp;curr=yes',
             #      'search', 'width=730,height=800,status=yes,resizable=yes,scrollbars=yes')">ABOYADE, OLUFEMI BABALOLA</a>
             i = i + 1
-            print('Downloading subpage {0} of {1}...'.format(i, nlinks))
+            print('Downloading subpage {0} of {1} at {2}...'.format(i, nlinks, datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+
             url_main = self.url_roster if flag=='roster' else self.url_booking
             subpage_url = url_main[0:url_main.rfind('/')+1] + a["onclick"].split(',')[0].split("'")[1]
             if any(self.df['url'].isin([subpage_url])): # already visited link - happens for booking site
@@ -524,7 +525,7 @@ class ScraperAthensClarke(object):
 
     def dump(self, fid):
         """ dump to CSV """
-        csv_fname = datetime.now().strftime('athens-clarke_' + fid + '_%Y_%m_%d_%H_%M_%S.csv')
+        csv_fname = datetime.now().strftime('athens-clarke_' + fid + '_%Y-%m-%d_%H-%M-%S.csv')
         self.df.to_csv(self.csv_dir + '/' + csv_fname, index=False, line_terminator='\n') # matches default params for csv.writer
         print('Wrote ' + csv_fname + ' to ' + self.csv_dir)
     

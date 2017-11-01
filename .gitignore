@@ -1,2 +1,4 @@
 *.pyc
-*.csv
+*.log
+/data/*.csv
+/data/*.pdf

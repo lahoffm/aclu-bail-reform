@@ -12,9 +12,9 @@ Using [virtualenv](https://virtualenv.pypa.io/en/stable/installation/), create a
 Then activate your virtual environment:
 `source ucla-env/bin/activate`
 
-### Install Scrapy
-To install Scrapy follow [their installation guide for your system.](https://doc.scrapy.org/en/latest/intro/install.html)
-
+### Install Scrapy and pandas
+To install Scrapy follow [their installation guide for your system](https://doc.scrapy.org/en/latest/intro/install.html).
+To install pandas in your virtual environment: `pip install pandas`. Minimum pandas version: **0.20.3**
 
 ## How to Use
 ### About Bibb County
@@ -49,10 +49,10 @@ If you are using a virtual environment, make sure it is activated for your termi
 | agency            | ✓ |
 | facility          | ✗ |
 | charges           | ✓ |
-| severity          | ✗ |
+| severity          | For some charges |
 | bond_amount       | ✓ |
 | current_status    | ✓ |
 | court_dates       | ✗ |
 | days_jailed       | ✗ |
-| other             | ✗ |
-| notes				| ✗ |
+| other             | Inmate currently in jail or released |
+| notes				| ✓ |

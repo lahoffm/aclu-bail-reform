@@ -1,6 +1,6 @@
 # Webscraper for Glynn county
 * Python 3.6.3
-* Retrieves daily jail population PDF from [Glynn county jail](http://www.glynncountysheriff.org/)
+* Processes daily jail population PDF from [Glynn county jail](http://www.glynncountysheriff.org/)
 
 ## How to install and run
 * Install [Anaconda](https://www.continuum.io/downloads), open command line
@@ -31,7 +31,8 @@
 > Under Export Format, select "Script" instead of CSV, and then click "Export" to download the generated code.
 
 ## Results
-[As per the specifications](https://github.com/lahoffm/aclu-bail-reform/blob/master/CONTRIBUTING.md#csv-columns-in-order), the resulting CSV includes the following columns:
+[As per the specifications](https://github.com/lahoffm/aclu-bail-reform/blob/master/CONTRIBUTING.md#csv-columns-in-order), the resulting CSV includes the following columns.
+*Population PDF is also saved in `../../../data` folder with timestamp.*
 
 | Column Name       | Data Available
 |-------------------|---------------|
@@ -59,4 +60,4 @@
 | court_dates       | ✗ |
 | days_jailed       | ✓ |
 | other             | ✗ |
-| notes				| ✓ |
+| notes				| ✗ |
