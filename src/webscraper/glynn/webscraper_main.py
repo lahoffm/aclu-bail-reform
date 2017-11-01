@@ -160,7 +160,8 @@ assert np.isin(df_pdf['current_status'].unique(), np.array(['',
                                                             'at Preliminary', # part of three-liner
                                                             'Hearing', # part of three-liner
                                                             'at Superior Court', # part of two-liner
-                                                            'Parole Release'])).all(), "Invalid format for charges' current status."
+                                                            'Parole Release',
+                                                            'Not Guilty Verdict'])).all(), "Invalid format for charges' current status."
 combine_twoline_status('Municipal Court', 'Release')
 combine_twoline_status('No Warrant', 'Received')
 combine_twoline_status('Probation', 'Revocation')
