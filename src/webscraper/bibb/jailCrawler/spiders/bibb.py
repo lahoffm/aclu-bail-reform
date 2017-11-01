@@ -11,7 +11,7 @@ class BibbSpider(scrapy.Spider):
     allowed_domains = ['co.bibb.ga.us']
     start_urls = ['http://www.co.bibb.ga.us/BSOInmatesOnline/CurrentDayMaster.asp']
     custom_settings = {
-        'FEED_URI': '../../../../data/bibb_%s.csv' % datetime.now().strftime('%Y_%m_%d_%H_%M_%S'),
+        'FEED_URI': '../../../../data/bibb_%s.csv' % datetime.now().strftime('%Y-%m-%d_%H-%M-%S'),
         'FEED_FORMAT': 'csv'
     }
 

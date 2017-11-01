@@ -5,7 +5,7 @@ The code automatically uses the current date it is being run and submits the url
 Following line of `cobb_scraper.py` will need adjustment to the location you wish to have the file stored at:
 
 ```python
-with open(r'../../../data/cobb_'+stamp+'-'+full_time+'.csv', 'w') as csvfile:
+with open(r'../../../data/cobb_'+stamp+'_'+full_time+'.csv', 'w') as csvfile:
 ```
 
 To run: `python cobb_scraper.py`

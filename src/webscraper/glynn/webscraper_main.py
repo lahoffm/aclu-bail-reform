@@ -15,7 +15,7 @@ headers = {'User-Agent' : h.request.headers['User-Agent'] + ' (Contact lahoffm@g
 response = requests.get(url, allow_redirects=True, headers=headers)
 timestamp = datetime.now()
 data_dir = '../../../data' # where to write data
-pdf_fname = timestamp.strftime('glynn_%Y_%m_%d_%H_%M_%S.pdf')
+pdf_fname = timestamp.strftime('glynn_%Y-%m-%d_%H-%M-%S.pdf')
 f = open(data_dir + '/' + pdf_fname, 'wb')
 f.write(response.content)
 f.close()
@@ -156,6 +156,7 @@ assert np.isin(df_pdf['current_status'].unique(), np.array(['',
                                                             'Probation', # part of two-liner
                                                             'Revocation', # part of two-liner
                                                             'Probation Expired',
+                                                            'Dead Docket',
                                                             'Charges Amended', # part of two or three-liner
                                                             'at Preliminary', # part of three-liner
                                                             'Hearing', # part of three-liner
@@ -291,6 +292,6 @@ df['severity'] = df_pdf['severity']
 df['current_status'] = df_pdf['current_status']
 
 # Dump to CSV
-csv_fname = timestamp.strftime('glynn_%Y_%m_%d_%H_%M_%S.csv')
+csv_fname = timestamp.strftime('glynn_%Y-%m-%d_%H-%M-%S.csv')
 df.to_csv(data_dir + '/' + csv_fname, index=False, line_terminator='\n') # matches default params for csv.writer
 print('Wrote ' + csv_fname + ' to ' + data_dir)

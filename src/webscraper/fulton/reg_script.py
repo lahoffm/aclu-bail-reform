@@ -22,7 +22,7 @@ from datetime import datetime
 
 starting_record = 1721583
 
-formatted_time = re.sub('[:\-\s]','_',str(datetime.now())[:-7])
+formatted_time = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 csv_name_string = '../../../data/fulton'+'_'+formatted_time+'.csv'
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -61,7 +61,7 @@ fieldnames = ['county_name',
 with open(csv_name_string, 'a') as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames, lineterminator='\n')
     writer.writeheader()
-    
+
 while True:
     cur_res = scrape(driver, current_record)
     if cur_res == []:

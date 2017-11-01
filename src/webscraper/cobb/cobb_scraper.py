@@ -308,7 +308,7 @@ for num,i in enumerate(inmates_info.keys()):
     inmates.append(inmate_row_i)
 
 cor_col=['county_name', 'timestamp', 'url', 'inmate_id', 'inmate_lastname', 'inmate_firstname', 'inmate_middlename', 'inmate_sex', 'inmate_race', 'inmate_age', 'inmate_dob', 'inmate_address', 'booking_timestamp', 'release_timestamp', 'processing_numbers', 'agency', 'facility', 'charges', 'severity', 'bond_amount', 'current_status', 'court_dates', 'days_jailed', 'other', 'notes']
-with open(r'../../../data/cobb_'+stamp+'-'+full_time+'.csv', 'w') as csvfile:
+with open(r'../../../data/cobb_'+stamp+'_'+full_time+'.csv', 'w') as csvfile:
     spamwriter = csv.writer(csvfile, lineterminator='\n')
     spamwriter.writerow(cor_col)
     for i in inmates:

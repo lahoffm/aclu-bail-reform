@@ -34,11 +34,7 @@ def get_csv_label(command='all', from_index='0', num_records='100', custom_date=
     return 'ALLstart' + from_index + 'size' + num_records
 
 def get_csv_timestamp():
-  timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-  date,time = re.split(' ', timestamp)
-  y,mo,d = re.split('-', date)
-  h,mi,s = re.split(':', time)
-  return '_'.join([y, mo, d, h, mi, s])
+  return datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
 def parse_sex(sex):
   if sex == 'Male':

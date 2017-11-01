@@ -525,7 +525,7 @@ class ScraperAthensClarke(object):
 
     def dump(self, fid):
         """ dump to CSV """
-        csv_fname = datetime.now().strftime('athens-clarke_' + fid + '_%Y_%m_%d_%H_%M_%S.csv')
+        csv_fname = datetime.now().strftime('athens-clarke_' + fid + '_%Y-%m-%d_%H-%M-%S.csv')
         self.df.to_csv(self.csv_dir + '/' + csv_fname, index=False, line_terminator='\n') # matches default params for csv.writer
         print('Wrote ' + csv_fname + ' to ' + self.csv_dir)
     
