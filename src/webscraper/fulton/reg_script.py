@@ -23,8 +23,8 @@ from functools import reduce
 
 current_record = int( open('last_record.txt','r').read() ) + 1
 
-formatted_time = datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
-csv_name_string = 'fulton'+'_'+formatted_time+'.csv'
+formatted_time = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+csv_name_string = '../../../data/fulton'+'_'+formatted_time+'.csv'
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 chrome_path = os.path.join(dir_path,"chromedriver")
@@ -63,7 +63,7 @@ fieldnames = ['county_name',
 with open(csv_name_string, 'a') as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames, lineterminator='\n')
     writer.writeheader()
-    
+
 while True:
     cur_res = scrape(driver, current_record)
     if cur_res == []:

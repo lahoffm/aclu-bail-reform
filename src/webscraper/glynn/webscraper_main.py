@@ -10,10 +10,12 @@ from warnings import warn
 # Get PDF, write to data dir for diagnosis if something goes wrong.
 print('Running Glynn county webscraper')
 url = 'http://www.glynncountysheriff.org/data/Population.pdf'
-response = requests.get(url, allow_redirects=True)
+h = requests.head(url=url) # set user-agent so they can contact us if they don't like how we're scraping
+headers = {'User-Agent' : h.request.headers['User-Agent'] + ' (Contact lahoffm@gmail.com, https://github.com/lahoffm/aclu-bail-reform)'}
+response = requests.get(url, allow_redirects=True, headers=headers)
 timestamp = datetime.now()
 data_dir = '../../../data' # where to write data
-pdf_fname = timestamp.strftime('glynn_%Y_%m_%d_%H_%M_%S.pdf')
+pdf_fname = timestamp.strftime('glynn_%Y-%m-%d_%H-%M-%S.pdf')
 f = open(data_dir + '/' + pdf_fname, 'wb')
 f.write(response.content)
 f.close()
@@ -109,19 +111,20 @@ if num_inmates != total_inmates: # Expecting this to be rare.
 # Put each charge on a single line - comments earlier explain why we have to do it this way.
 j = 0
 charges_oneline = charges.str.replace('\r', ' ')
+df_pdf['charges'].fillna('', inplace=True) # to avoid error calling 'replace' on a NaN charge below
 for i in range(len(charges)):
     if '\r' in charges[i]: # two-line charge
         firstline = charges[i][0:charges[i].find('\r')]
     else: # one-line charge
         firstline = charges[i]
     while True: # go to next line matching current charge
-        if df_pdf.loc[j,'charges']==firstline:
+        if df_pdf.loc[j,'charges'].replace(' ','') == firstline.replace(' ',''): # Replace ' ' to fix bug. Sometimes charges are loaded with different # of spaces than df_pdf[charges]
             break
         j += 1
     if '\r' in charges[i]: # must concatenate for two-line charge
         df_pdf.loc[j,'charges'] = df_pdf.loc[j,'charges'] + ' ' + df_pdf.loc[j+1,'charges']
         df_pdf.loc[j+1,'charges'] = ''
-    assert charges_oneline[i] == df_pdf.loc[j,'charges'], 'When 2-line charge was concatenated to one line, it did not match the expected one-line charge'
+    assert charges_oneline[i].replace(' ','') == df_pdf.loc[j,'charges'].replace(' ',''), 'When 2-line charge was concatenated to one line, it did not match the expected one-line charge'
     j += 1
 
 # Helper function to put each current status on one line
@@ -153,11 +156,13 @@ assert np.isin(df_pdf['current_status'].unique(), np.array(['',
                                                             'Probation', # part of two-liner
                                                             'Revocation', # part of two-liner
                                                             'Probation Expired',
+                                                            'Dead Docket',
                                                             'Charges Amended', # part of two or three-liner
                                                             'at Preliminary', # part of three-liner
                                                             'Hearing', # part of three-liner
                                                             'at Superior Court', # part of two-liner
-                                                            'Parole Release'])).all(), "Invalid format for charges' current status."
+                                                            'Parole Release',
+                                                            'Not Guilty Verdict'])).all(), "Invalid format for charges' current status."
 combine_twoline_status('Municipal Court', 'Release')
 combine_twoline_status('No Warrant', 'Received')
 combine_twoline_status('Probation', 'Revocation')
@@ -287,6 +292,6 @@ df['severity'] = df_pdf['severity']
 df['current_status'] = df_pdf['current_status']
 
 # Dump to CSV
-csv_fname = timestamp.strftime('glynn_%Y_%m_%d_%H_%M_%S.csv')
+csv_fname = timestamp.strftime('glynn_%Y-%m-%d_%H-%M-%S.csv')
 df.to_csv(data_dir + '/' + csv_fname, index=False, line_terminator='\n') # matches default params for csv.writer
 print('Wrote ' + csv_fname + ' to ' + data_dir)
