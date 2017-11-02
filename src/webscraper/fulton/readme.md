@@ -1,7 +1,7 @@
 # Fulton County Jail Webscraper
 
 This code was written in **Python 3.6**, and relies on **selenium** and **BeautifulSoup4**.
-Both of these packages can installed via `pip install selenium bs4`.
+Both of these packages can installed via `pip install requirements.txt`.
 
 If you are using Chrome on Windows, the selenium driver `chromedriver.exe` has already been placed in this directory.
 It runs **ChromeDriver 2.33**, which supports Chrome v60-62 according to selenium docs.
