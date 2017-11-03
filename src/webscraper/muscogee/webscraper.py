@@ -1,3 +1,8 @@
+"""
+The url has changed on me before, so it might be good to change this
+so it navigates to the same place from a stable url.
+"""
+
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from operator import itemgetter
@@ -7,18 +12,19 @@ import csv
 
 #PUT YOUR CHROME DRIVER PATH HERE
 chrome_path = r""
+if chrome_path == "":
+    print("Paste chrome system path into the 'chrome_path' variable in order to run the program")
+    
+    
 
 #opens chrome to grab html at url
+#uses chrome because urllib gets ssl errors
 def get_html(url):
     browser = webdriver.Chrome(chrome_path)
     browser.get(url)
     html = browser.page_source
     browser.quit()
     return html
-
-def parse_table(table):
-    soup = BeautifulSoup(table, 'html.parser')
-    print(soup.find_all('font'))
     
 def scrape_muscogee_docket(url, isIntake):
     all_entries = []
@@ -41,17 +47,17 @@ def scrape_muscogee_docket(url, isIntake):
         
     return all_entries
 
-#CSV Functions ----------------------------------------------------------
+#CSV Functions -------------------------------------------------------
 
 fieldnames = ["county_name",        #'Muscogee'
-              "timestamp",          #postgre_timestamp()
+              "timestamp",          #postgre_timestamp(timezone = True)
               "url",
               "inmate_id",
               "inmate_lastname",    #name_seperation(entry[2])[2]
               "inmate_firstname",   #name_seperation(entry[2])[0]
               "inmate_middlename",  #name_seperation(entry[2])[1]
               "inmate_sex",         #entry[5].lower()
-              "inmate_race",        #convert_race(entry[4])
+              "inmate_race",        #parse_race(entry[4])
               "inmate_age",         #age(entry[3])
               "inmate_dob",         #entry[3]
               "inmate_address",
@@ -74,17 +80,19 @@ def muscogee_to_csv(data, isIntake, url, notes = ""):
     if isIntake: datatype = "intake"
     with open("muscogee_" + datatype + "_" + postgre_timestamp().replace(":","-") + ".csv",
               "w") as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
         for entry in data:
+            #Maybe put this part in its own function
             name = name_seperation(entry[2])
             writer.writerow({'county_name': 'Muscogee',
-                             'timestamp': postgre_timestamp(True),
+                             'timestamp': postgre_timestamp(timezone = True),
                              'url': url,
                              'inmate_lastname': name[2],
                              'inmate_firstname': name[0],
                              'inmate_middlename': name[1],
                              'inmate_sex': entry[5].lower(),
+                             'inmate_race': parse_race(entry[4]),
                              'inmate_age': age(entry[3]),
                              'inmate_dob': entry[3],
                              'booking_timestamp': convert_timestamp(entry[1]),
@@ -97,6 +105,7 @@ def postgre_timestamp(timezone = False):
     timestamp = strftime("%Y-%m-%d_%H:%M:%S")
     if timezone:
         #hardcoded timezone because abbreviated zones are not standard
+        #TODO: check for american timezones and return correct abbreviated timezone
         return timestamp + " EST"  
     else: return timestamp
 
@@ -112,6 +121,11 @@ def name_seperation(full_name):
 
 def age(birth_year):
     return str((date.today().year+1)-int(birth_year))
+
+def parse_race(r):
+    if r == "W": return "white"
+    elif r == "B": return "black"
+    else: return "" #no other races used in muscogee 
 #------------------------------------------------------------------------
 
 def main():
