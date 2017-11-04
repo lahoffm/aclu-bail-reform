@@ -19,6 +19,28 @@ class GwinnettInmateRecord:
         self.timestamp = scrape_time
         self.url = "http://www.gwinnettcountysheriff.com/smartwebclient/"
 
+        # default field values
+        self.id = None
+        self.lastname = None
+        self.firstname = None
+        self.middlename = None
+        self.sex = None
+        self.race = None
+        self.age = None
+        self.dob = None
+        self.address = None
+        self.booking_timestamp = None
+        self.release_timestamp = None
+        self.processing_numbers = None
+        self.agency = None
+        self.facility = None
+        self.charges = None
+        self.severity = None
+        self.bond_amount = None
+        self.current_status = None
+        self.court_dates = None
+        self.days_jailed = None
+        self.other = None
 
     def get_field_names_csv(self):
         return [
