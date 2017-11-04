@@ -6,44 +6,92 @@ from nameparser import HumanName
 import req_data as req
 import helpers_index as helpers
 
-if len(sys.argv) > 1:
+try:
   command = sys.argv[1]
+except IndexError:
+  print('Please enter a valid command (all, today, custom).')
+  sys.exit()
+else:
   if command == 'all':
-    if len(sys.argv) == 4:
+    try:
       from_index = sys.argv[2]
       num_records = sys.argv[3]
-      if helpers.validate_int(from_index, num_records):
-        params = req.create_params(from_index=from_index, num_records=num_records)
-        label = helpers.get_csv_label(command=command, from_index=from_index, num_records=num_records)
-      else:
-        print('Index number and record size must be positive integers.')
-        sys.exit()
-    else:
+    except IndexError:
       print('Please specify a start index (min 0) and the number of wanted records.')
       sys.exit()
+    else:
+      try:
+        n = int(from_index)
+        m = int(num_records)
+        if n < 0: raise ValueError
+        if m < 0: raise ValueError
+      except ValueError:
+        print('Index number and record size must be positive integers.')
+        sys.exit()
+      else:
+        params = req.create_params(from_index=from_index, num_records=num_records)
+        label = helpers.get_csv_label(command=command, from_index=from_index, num_records=num_records)
   elif command == 'today':
     params = req.create_params(today=True)
     label = helpers.get_csv_label(command=command)
   elif command == 'custom':
-    if len(sys.argv) >= 3:
+    try:
       custom_date = sys.argv[2]
-      if helpers.validate_date(custom_date):
-        params = req.create_params(today=True, custom_date=custom_date)
-        label = helpers.get_csv_label(command=command, custom_date=custom_date)
-      else:
-        print('Please input a valid date (yyyy-mm-dd).')
-        sys.exit()
-    else:
+    except IndexError:
       print('Please specify a date (yyyy-mm-dd).')
       sys.exit()
+    else:
+      try:
+        valid = helpers.validate_date(custom_date)
+        if not valid: raise Exception
+      except Exception:
+        print('Please input a valid date (yyyy-mm-dd).')
+        sys.exit()
+      else:
+        params = req.create_params(today=True, custom_date=custom_date)
+        label = helpers.get_csv_label(command=command, custom_date=custom_date)
   else:
     print('Please enter a valid command (all, today, custom).')
     sys.exit()
-else:
-  command = 'all'
-  num_records = 100
-  params = req.create_params()
-  label = helpers.get_csv_label()
+
+# if len(sys.argv) > 1:
+#   command = sys.argv[1]
+#   if command == 'all':
+#     if len(sys.argv) == 4:
+#       from_index = sys.argv[2]
+#       num_records = sys.argv[3]
+#       if helpers.validate_int(from_index, num_records):
+#         params = req.create_params(from_index=from_index, num_records=num_records)
+#         label = helpers.get_csv_label(command=command, from_index=from_index, num_records=num_records)
+#       else:
+#         print('Index number and record size must be positive integers.')
+#         sys.exit()
+#     else:
+#       print('Please specify a start index (min 0) and the number of wanted records.')
+#       sys.exit()
+#   elif command == 'today':
+#     params = req.create_params(today=True)
+#     label = helpers.get_csv_label(command=command)
+#   elif command == 'custom':
+#     if len(sys.argv) >= 3:
+#       custom_date = sys.argv[2]
+#       if helpers.validate_date(custom_date):
+#         params = req.create_params(today=True, custom_date=custom_date)
+#         label = helpers.get_csv_label(command=command, custom_date=custom_date)
+#       else:
+#         print('Please input a valid date (yyyy-mm-dd).')
+#         sys.exit()
+#     else:
+#       print('Please specify a date (yyyy-mm-dd).')
+#       sys.exit()
+#   else:
+#     print('Please enter a valid command (all, today, custom).')
+#     sys.exit()
+# else:
+#   command = 'all'
+#   num_records = 100
+#   params = req.create_params()
+#   label = helpers.get_csv_label()
 
 print('Scraping...')
 
