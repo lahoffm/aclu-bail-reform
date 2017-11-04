@@ -2,16 +2,16 @@ from datetime import date, datetime
 import agecalc
 import re
 
-def validate_int(index, size):
-  try:
-    val1 = int(index)
-    val2 = int(size)
-    if val1 >= 0 and val2 >= 0:
-      return True
-    else:
-      return False
-  except ValueError:
-    return False
+# def validate_int(index, size):
+#   try:
+#     val1 = int(index)
+#     val2 = int(size)
+#     if val1 >= 0 and val2 >= 0:
+#       return True
+#     else:
+#       return False
+#   except ValueError:
+#     return False
 
 def validate_date(date_text):
   try:
