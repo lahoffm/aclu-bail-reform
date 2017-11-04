@@ -3,10 +3,9 @@
 We are using **Python 3.6**.  
 
 * Priority #1 is writing webscrapers for each county, so we can collect daily jail data.
-* **Current goal:** start daily data collection for 4 or more counties by November 1.
+* Priority #2 is writing ETL/visualization code throughout Nov/Dec 2017.
 * County jail info [here](https://github.com/lahoffm/aclu-bail-reform/blob/master/docs/County-jail-summaries.xlsx)
 * [Pick an unclaimed county](https://github.com/lahoffm/aclu-bail-reform/issues) and start scraping!
-* Once we have data we can work on ETL/visualization
 * ACLU will lobby at next GA state legislative session starting Jan 2018. Ideally we'll have some visualizations by then. But their bail reform project will be ongoing beyond then.  
 
 
