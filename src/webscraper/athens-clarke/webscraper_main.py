@@ -7,7 +7,7 @@ import time
 
 t = time.time()
 
-ac = ScraperAthensClarke(timeout=10, retries=3, sleep_sec=1)
+ac = ScraperAthensClarke(timeout=10, retries=3, sleep_sec=0)
 ac.scrape_all()
 
 elapsed = round(time.time() - t)

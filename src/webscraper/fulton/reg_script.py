@@ -12,6 +12,7 @@ import csv
 import os
 import re
 from datetime import datetime
+from functools import reduce
 
 # This script runs each day. It starts by checking some log files that 
 # initialize it. It then scrapes the Fulton County jail website, until some
@@ -20,10 +21,10 @@ from datetime import datetime
 
 # bring in info from log files
 
-starting_record = 1717250
+current_record = int( open('last_record.txt','r').read() ) + 1
 
-formatted_time = re.sub('[:\-\s]','_',str(datetime.now())[:-7])
-csv_name_string = 'fulton'+'_'+formatted_time+'.csv'
+formatted_time = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+csv_name_string = '../../../data/fulton'+'_'+formatted_time+'.csv'
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 chrome_path = os.path.join(dir_path,"chromedriver")
@@ -31,36 +32,37 @@ driver = webdriver.Chrome(chrome_path)
 
 empty_counter = 0
 unreleased = []
-current_record = starting_record
 
 fieldnames = ['county_name',
               'timestamp',
+              'url',
               'inmate_id',
               'inmate_lastname',
               'inmate_firstname',
               'inmate_middlename',
-              'inmate_alias',
               'inmate_sex',
               'inmate_race',
+              'inmate_age',
+              'inmate_dob',
               'inmate_address',
-              'inmate_hair',
-              'inmate_eyes',
-              'inmate_weight',
-              'inmate_height',
-              'so_number',
               'booking_timestamp',
               'release_timestamp',
+              'processing_numbers',
               'agency',
               'facility',
-              'num_charges',
               'charges',
+              'severity',
               'bond_amount',
+              'current_status',
+              'court_date',
+              'days_jailed',
+              'other',
               'notes'
         ]
 
 with open(csv_name_string, 'a') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writeheader()
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames, lineterminator='\n')
+    writer.writeheader()
 
 while True:
     cur_res = scrape(driver, current_record)
@@ -70,10 +72,16 @@ while True:
         empty_counter = 0
         
         par_res = {}
+        par_res['url'] = None
+        par_res['inmate_age'] = None
+        par_res['inmate_dob'] = None
+        par_res['severity'] = None
+        par_res['court_date'] = None
+        par_res['days_jailed'] = None
+        par_res['other'] = None
         par_res['notes'] = ''
         par_res['county_name'] = 'fulton'
-        # not exactly the timestamp we wanted but this was driving me crazy
-        par_res['timestamp'] = str(datetime.now())
+        par_res['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S EST')
         
         par_res['inmate_id'] = current_record
         par_res['inmate_lastname'] = cur_res[2][2].split(' ')[0].strip(',')
@@ -82,59 +90,59 @@ while True:
             par_res['inmate_middlename'] = cur_res[2][2].split(' ')[2].strip(',')
         except IndexError:
             par_res['inmate_middlename'] = None
-        par_res['inmate_alias'] = cur_res[2][6]
         par_res['inmate_sex'] = cur_res[2][4].split('\xa0')[2][0]
         par_res['inmate_race'] = cur_res[2][4].split('\xa0')[0]
         # not totally sure if this is inmate address or address of the crime
         par_res['inmate_address'] = cur_res[2][14]
-        par_res['inmate_hair'] = cur_res[2][8]
-        par_res['inmate_eyes'] = cur_res[2][12]
-        # weight in pounds
-        par_res['inmate_weight'] = cur_res[2][4].split('\xa0')[6]
-        inmate_feet = int(cur_res[2][4].split('\xa0')[4].split()[0][:-1])
-        try:
-            inmate_inches = int(cur_res[2][4].split('\xa0')[4].split()[1][:-1])
-        except IndexError:
-            inmate_inches = 0
-        # height in inches
-        par_res['inmate_height'] = inmate_feet * 12 + inmate_inches
         # not sure what SO number is
-        par_res['so_number'] = cur_res[2][10]
+        par_res['processing_numbers'] = cur_res[2][10]
         
         book_date = cur_res[1][1].split(':')[1].strip()
         try:
-            par_res['booking_timestamp'] = str(datetime.strptime(book_date, '%m/%d/%Y'))
+            par_res['booking_timestamp'] = datetime.strptime(book_date, '%m/%d/%Y').strftime('%Y-%m-%d')
         except ValueError:
             par_res['notes'] = par_res['notes']+'no booking date recorded; '
         rel_date = cur_res[1][2].split(':')[1].strip()
         if rel_date == '':
             unreleased.append(current_record)
         else:
-            par_res['release_timestamp'] = str(datetime.strptime(rel_date, '%m/%d/%Y'))
+            par_res['release_timestamp'] = datetime.strptime(rel_date, '%m/%d/%Y').strftime('%Y-%m-%d')
         
         par_res['agency'] = cur_res[0][1]
         par_res['facility'] = cur_res[1][0].split(':')[1]
         
         # seems bookings can have an arbitrary number of charges
         num_charges = len(cur_res) - 13
-        par_res['num_charges'] = num_charges
         if num_charges > 0:
-            par_res['charges'] = cur_res[13][1]
-            # get bond just for first charge, in cents
-            par_res['bond_amount'] =  ''.join(filter(str.isdigit, cur_res[13][4]))
+            charge_list = [re.sub('|','',cur_res[13+i][1]) for i in range(num_charges)]
+            par_res['charges'] = reduce((lambda x,y: x + ' | ' + y), charge_list)
+            
+            bond_list = [re.sub('\D','',cur_res[13+i][4])[:-2] for i in range(num_charges)]
+            for i in range(len(bond_list)):
+                if bond_list[i] != '':
+                    bond_list[i] = '$' + bond_list[i]
+            par_res['bond_amount'] = reduce((lambda x,y: x + ' | ' + y), bond_list)
+            
+            disp_list = [re.sub('|','',cur_res[13+i][6]) for i in range(num_charges)]
+            par_res['current_status'] = reduce((lambda x,y: x + ' | ' + y), disp_list)
+            
         else:
             par_res['charges'] = None
             par_res['bond_amount'] = None
+            par_res['current_status'] = None
         
         with open(csv_name_string, 'a') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames, lineterminator='\n')
             writer.writerow(par_res)
     
-    if empty_counter > 20:
+    if empty_counter >= 20:
         break
     current_record += 1
         
-        
+last_record_scraped = current_record - 20
+
+with open('last_record.txt', 'w') as f:
+    f.write(str(last_record_scraped))
 
 
 #scraped_records = {}
