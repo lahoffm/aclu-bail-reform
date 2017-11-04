@@ -18,6 +18,7 @@ class GwinnettInmateRecord:
         self.county_name = "gwinnett"
         self.timestamp = scrape_time
         self.url = "http://www.gwinnettcountysheriff.com/smartwebclient/"
+        self.booking_date_format = '%m/%d/%Y %H:%M:%S'
 
         # default field values
         self.id = None
