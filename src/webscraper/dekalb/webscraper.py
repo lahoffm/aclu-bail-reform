@@ -2,6 +2,7 @@ import sys
 import requests
 import json
 import csv
+from datetime import datetime
 from nameparser import HumanName
 import req_data as req
 import helpers_index as helpers
@@ -42,9 +43,8 @@ else:
       sys.exit()
     else:
       try:
-        valid = helpers.validate_date(custom_date)
-        if not valid: raise Exception
-      except Exception:
+        valid = datetime.strptime(custom_date, '%Y-%m-%d')
+      except Exception as e:
         print('Please input a valid date (yyyy-mm-dd).')
         sys.exit()
       else:
@@ -53,45 +53,6 @@ else:
   else:
     print('Please enter a valid command (all, today, custom).')
     sys.exit()
-
-# if len(sys.argv) > 1:
-#   command = sys.argv[1]
-#   if command == 'all':
-#     if len(sys.argv) == 4:
-#       from_index = sys.argv[2]
-#       num_records = sys.argv[3]
-#       if helpers.validate_int(from_index, num_records):
-#         params = req.create_params(from_index=from_index, num_records=num_records)
-#         label = helpers.get_csv_label(command=command, from_index=from_index, num_records=num_records)
-#       else:
-#         print('Index number and record size must be positive integers.')
-#         sys.exit()
-#     else:
-#       print('Please specify a start index (min 0) and the number of wanted records.')
-#       sys.exit()
-#   elif command == 'today':
-#     params = req.create_params(today=True)
-#     label = helpers.get_csv_label(command=command)
-#   elif command == 'custom':
-#     if len(sys.argv) >= 3:
-#       custom_date = sys.argv[2]
-#       if helpers.validate_date(custom_date):
-#         params = req.create_params(today=True, custom_date=custom_date)
-#         label = helpers.get_csv_label(command=command, custom_date=custom_date)
-#       else:
-#         print('Please input a valid date (yyyy-mm-dd).')
-#         sys.exit()
-#     else:
-#       print('Please specify a date (yyyy-mm-dd).')
-#       sys.exit()
-#   else:
-#     print('Please enter a valid command (all, today, custom).')
-#     sys.exit()
-# else:
-#   command = 'all'
-#   num_records = 100
-#   params = req.create_params()
-#   label = helpers.get_csv_label()
 
 print('Scraping...')
 
@@ -105,7 +66,7 @@ if len(inmate_data) == 0:
   print('No records found.')
   sys.exit()
 
-with open('./../../../data/dekalb_' + label + '_' + helpers.get_csv_timestamp() + '.csv', 'w', newline='') as new_file:
+with open('./../../../data/dekalb_' + label + '.csv', 'w', newline='') as new_file:
 
   csv_writer = csv.DictWriter(new_file, fieldnames=helpers.fieldnames, delimiter=',', dialect='excel')
 
@@ -131,7 +92,7 @@ with open('./../../../data/dekalb_' + label + '_' + helpers.get_csv_timestamp() 
 
     inmate_dict = {
       'county_name': 'dekalb',
-      'timestamp': helpers.get_current_timestamp(),
+      'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ' EST',
       'url': view_url,
       'inmate_id': inmate['bookingNumber'],
       'inmate_lastname': name.last,
