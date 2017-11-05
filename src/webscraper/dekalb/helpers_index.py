@@ -62,7 +62,7 @@ def get_ids_str(so, booking, jail, arrest):
   return ' | '.join([
     'SO# ' + str(so),
     'Booking Number ' + str(booking),
-    'Jail ID' + str(jail),
+    'Jail ID ' + str(jail),
     'Arrest ID ' + str(arrest)
   ])
 
