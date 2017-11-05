@@ -14,6 +14,11 @@ class GwinnettInmateRecord:
         Male = 'm'
         Unknown = 'unknown'
 
+    class ChargeSeverity:
+        Misdemeanor = 'misdemeanor'
+        Felony = 'felony'
+        Unknown = 'unknown'
+
     def __init__(self, scrape_time):
         self.county_name = "gwinnett"
         self.timestamp = scrape_time
