@@ -39,11 +39,6 @@ python webscraper.py custom 1900-01-01
 ```
 Scrapes all records for a custom date. A **custom date** (yyyy-mm-dd) must be specified as an argument. If there are no records for a specified date, it will respond with `No records found.`
 
-#### Default
-```
-python webscraper.py
-```
-Scrapes records starting from index 0 for 100 records.
 
 ## Available Data
 | Column Name                     | Data Available

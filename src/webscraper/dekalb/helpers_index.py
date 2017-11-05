@@ -89,9 +89,12 @@ def get_booking_timestamp(date_string, time_string):
   return dt + ' ' + tm + ' EST'
 
 def get_release_timestamp(release_string):
-  dt,t_part = re.split('T', release_string)
-  tm = t_part.split('-')[0]
-  return dt + ' ' + tm + ' EST'
+  if release_str.startswith('0001') or release_str.startswith('1900'):
+    return None
+  else:
+    dt,t_part = re.split('T', release_string)
+    tm = t_part.split('-')[0]
+    return dt + ' ' + tm + ' EST'
 
 def get_days_jailed(book_date_str, book_time_str, release_str):
   book_ts = get_booking_timestamp(book_date_str, book_time_str)
