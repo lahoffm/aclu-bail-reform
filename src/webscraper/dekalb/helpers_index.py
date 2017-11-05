@@ -2,39 +2,14 @@ from datetime import date, datetime
 import agecalc
 import re
 
-def validate_int(index, size):
-  try:
-    val1 = int(index)
-    val2 = int(size)
-    if val1 >= 0 and val2 >= 0:
-      return True
-    else:
-      return False
-  except ValueError:
-    return False
-
-def validate_date(date_text):
-  try:
-    datetime.strptime(date_text, '%Y-%m-%d')
-    return True
-  except ValueError:
-    return False
-
-def get_current_timestamp():
-  timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-  dt,tm = re.split(' ', timestamp)
-  return dt + ' ' + tm + ' EST'
-
 def get_csv_label(command='all', from_index='0', num_records='100', custom_date=None):
+  current_ts = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
   if command == 'today':
-    return 'TODAY'
+    return 'TODAY_' + current_ts
   elif command == 'custom':
-    return 'CUSTOM' + custom_date.replace('-', '')
+    return 'CUSTOM' + custom_date.replace('-', '') + '_' + current_ts
   else:
-    return 'ALLstart' + from_index + 'size' + num_records
-
-def get_csv_timestamp():
-  return datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    return 'ALLstart' + from_index + 'size' + num_records + '_' + current_ts
 
 def parse_sex(sex):
   if sex == 'Male':
