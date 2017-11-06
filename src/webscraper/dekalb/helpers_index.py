@@ -88,30 +88,30 @@ def parse_timestamp(date_string, time_string):
   tm = t_split.split('-')[0]
   return dt + ' ' + tm + ' EST'
 
-def get_days_jailed(book_date_str, book_time_str, release_str):
-  book_ts = parse_timestamp(book_date_str, book_time_str)
-  if book_ts == None:
-    return None
-  book_dt,book_tm,other = re.split(' ', book_ts)
-  book_y,book_mo,book_d = re.split('-', book_dt)
-  book_h,book_mi,book_s = re.split(':', book_tm)
+# def get_days_jailed(book_date_str, book_time_str, release_str):
+#   book_ts = parse_timestamp(book_date_str, book_time_str)
+#   if book_ts == None:
+#     return None
+#   book_dt,book_tm,other = re.split(' ', book_ts)
+#   book_y,book_mo,book_d = re.split('-', book_dt)
+#   book_h,book_mi,book_s = re.split(':', book_tm)
 
-  start_date = datetime(int(book_y), int(book_mo), int(book_d), int(book_h), int(book_mi), int(book_s))
+#   start_date = datetime(int(book_y), int(book_mo), int(book_d), int(book_h), int(book_mi), int(book_s))
 
-  if release_str.startswith('0001') or release_str.startswith('1900'):
-    end_date = datetime.now()
-  else:
-    rel_ts = get_release_timestamp(release_str)
-    rel_dt,rel_tm,other = re.split(' ', rel_ts)
-    rel_y, rel_mo, rel_d = re.split('-', rel_dt)
-    rel_h, rel_mi, rel_s = re.split(':', rel_tm)
+#   if release_str.startswith('0001') or release_str.startswith('1900'):
+#     end_date = datetime.now()
+#   else:
+#     rel_ts = get_release_timestamp(release_str)
+#     rel_dt,rel_tm,other = re.split(' ', rel_ts)
+#     rel_y, rel_mo, rel_d = re.split('-', rel_dt)
+#     rel_h, rel_mi, rel_s = re.split(':', rel_tm)
 
-    end_date = datetime(int(rel_y), int(rel_mo), int(rel_d), int(rel_h), int(rel_mi), int(rel_s))
+#     end_date = datetime(int(rel_y), int(rel_mo), int(rel_d), int(rel_h), int(rel_mi), int(rel_s))
 
-  num_days = (end_date - start_date).days
-  if num_days == 0:
-    return '<1'
-  return num_days
+#   num_days = (end_date - start_date).days
+#   if num_days == 0:
+#     return '<1'
+#   return num_days
 
 fieldnames = [
     'county_name',

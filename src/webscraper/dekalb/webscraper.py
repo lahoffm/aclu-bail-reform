@@ -118,7 +118,8 @@ with open('./../../../data/dekalb_' + label + '.csv', 'w', newline='') as new_fi
       'bond_amount': ' | '.join(charges['bond']),
       'current_status': ' | '.join(charges['disp']),
       'court_dates': None,
-      'days_jailed': helpers.get_days_jailed(jailing_data['BookingDateString'], jailing_data['BookingTime'], jailing_data['ReleaseTime']),
+      # 'days_jailed': helpers.get_days_jailed(jailing_data['BookingDateString'], jailing_data['BookingTime'], jailing_data['ReleaseTime']),
+      'days_jailed': None,
       'other': None,
       'notes': None
     }
