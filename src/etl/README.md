@@ -102,7 +102,7 @@ release_info | TRUE if county posts any release information, else FALSE
 stale_days* | After how many days should booking be marked as `Stale`, relative to the last day something changed in **Timelines**? At that point we think no new information will come for a while, perhaps never. Default=`NaN`
 expire_days* | After how many days should booking be marked as `Expired`, relative to the last day something changed in **Timelines**? At that point we are 100% sure no new information will come. Default=`NaN`
 stale_events* | Which event(s) signify booking should be marked as `Stale`? Default=`NaN`
-expire_events* | Which event(s) signify booking should be marked as `Expired`? Like `'Released | Dropped Off Roster'` if there's 2 such events. Default=`NaN`
+expire_events* | Which event(s) signify booking should be marked as `Expired`? Like `'Released \| Dropped Off Roster'` if there's 2 such events. Default=`NaN`
 other flags to help process each county? | TODO figure these out
 
 *\*Either `stale_days` or `stale_events` should be set, the other should be `NaN`.*  
