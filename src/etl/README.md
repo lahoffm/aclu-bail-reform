@@ -21,7 +21,7 @@ We can log when other information changes, like a charge's `current_status`. Fin
 
 ### Algorithm to get info in database - TODO does this account for all possibilities?
 ```
-For each CSV file
+For each CSV file, starting with oldest & going to youngest
 	If any bookings dropped off roster (not all counties have this), add event to Timelines table - possibly updating stale/expired.
 	
 	For each row in CSV file
@@ -47,6 +47,8 @@ For each CSV file
 	--> This is county-specific logic; compare 'No change' timelines and the most recent event to flags in Counties table
 	--> Check for Expired & add that event first since it's more informative than 'Stale'.
 ```
+
+TODO How to make sure database constructed in chronological order? (timeline & updating of data fields always goes from earliest to most recent so we never overwrite newer data with older data and never create an event that happened before another event). Challenge for this is that sometimes we use jail timestamps in addition to scraping timestamps.
 
 ### How to get length of time in jail for each county
 TODO make table for each county, listing all possible ways to get "length of time in jail pre-trial" for the county, and list all possible ways that the release date could be "Unknown" for the county.
@@ -146,9 +148,9 @@ Dropped Off Roster | Inmate dropped off roster. Only set this when county posts 
 Sentenced | Inmate was sentenced for at least one charge, and is no longer pre-trial.
 {fieldname} Changed | Another field changed in the CSV file. For example if `bond_amount` went from `'$1000.00 bond set'` to `'$1000.00 bond posted'` the event name is `'bond_amount Changed'`. If a second field changed, like `current_status` from `'Pre-trial'` to `'Sentenced'`, make a second event `'current_status Changed'`.
 On Roster | Inmate was listed on roster at the time data was scraped. Only set this when county lists full inmate rosters. Otherwise we can't be sure, even if there's no release date. Maybe they were transferred.  **Note: this event is always connected to a particular `booking_id`.** Don't say `On Roster` for one `booking_id` if same inmate is later arrested under a different `booking_id`. *Don't set this when the most recent event was `Stale` or `Expired`.*
-No Change | Nothing changed since the most recent event. When county lists full inmate rosters, set both `On Roster` and `No change`. Otherwise just set `No Change`. *Don't set this when the most recent event was `Stale` or `Expired`.*
-Stale | Booking is stale, based on `stale_days` or `stale_events` in **Counties**. Set this event when there has been nothing but `No Change` or `On Roster` for `stale_days` days. Also set this event when the most recent event matches one of the `stale_events`.Note if an event used to be stale but something changed, there will be a new event that is more recent than `Stale`, effectively restarting the stale checking.
-Expired | Booking is expired, based on `expired_days` or `expired_events` in **Counties**. Set this event when there has been nothing but 'No Change', 'On Roster' or 'Stale' for `expired_days` days. Also set this event when the most recent event (not including `Stale`) matches one of the `expired_events`. **Never set any event after `Expired`!**
+No Change | Nothing changed since the most recent event. When county lists full inmate rosters, set both `On Roster` and `No Change`. Otherwise just set `No Change`. *Don't set this when the most recent event was `Stale` or `Expired`.*
+Stale | Booking is stale, based on `stale_days` or `stale_events` in **Counties**. Set this event when there has been nothing but `No Change` or `On Roster` for `stale_days` days. Also set this event when the most recent event matches one of the `stale_events`.  if an event used to be stale but something changed, there will be a new event that is more recent than `Stale`, effectively restarting the stale checking.
+Expired | Booking is expired, based on `expired_days` or `expired_events` in **Counties**. Set this event when there has been nothing but `No Change`, `On Roster` or `Stale` for `expired_days` days. Also set this event when any event matches one of the `expired_events`. **Never set any event after `Expired`!**
 
 
-TODO What could happen other than inmate 'sentenced'?
+TODO What other events could happen?
