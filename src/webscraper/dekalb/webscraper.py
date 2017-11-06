@@ -82,6 +82,11 @@ with open('./../../../data/dekalb_' + label + '.csv', 'w', newline='') as new_fi
     view_url = 'https://ody.dekalbcountyga.gov/app/ViewJailing/#/jailing/' + jail_id
     req_get = requests.get('https://ody.dekalbcountyga.gov/app/ViewJailingService//Jailings(' + jail_id + ')')
 
+    if name.suffix != '':
+      suffix = ', ' + name.suffix
+    else:
+      suffix = name.suffix
+
     if req_get.headers['Content-Length'] == '0':
       invalid_ids.append(jail_id)
       continue
@@ -96,15 +101,15 @@ with open('./../../../data/dekalb_' + label + '.csv', 'w', newline='') as new_fi
       'url': view_url,
       'inmate_id': inmate['bookingNumber'],
       'inmate_lastname': name.last,
-      'inmate_firstname': name.first,
+      'inmate_firstname': name.first + suffix,
       'inmate_middlename': name.middle,
       'inmate_sex': helpers.parse_sex(jailing_data['DefendantGender']),
       'inmate_race': jailing_data['DefendantRace'],
       'inmate_age': helpers.get_age(jailing_data['DefendantDOBString']),
       'inmate_dob': helpers.get_dob_str(jailing_data['DefendantDOBString']),
       'inmate_address': ', '.join(jailing_data['DefendantAddress']),
-      'booking_timestamp': helpers.get_booking_timestamp(jailing_data['BookingDateString'], jailing_data['BookingTime']),
-      'release_timestamp': helpers.get_release_timestamp(jailing_data['ReleaseTime']),
+      'booking_timestamp': helpers.parse_timestamp(jailing_data['BookingDateString'], jailing_data['BookingTime']),
+      'release_timestamp': helpers.parse_timestamp(jailing_data['ReleaseDateString'], jailing_data['ReleaseTime']),
       'processing_numbers': helpers.get_ids_str(inmate['defendantSONum'], inmate['bookingNumber'], inmate['jailID'], inmate['arrests'][0]['arrestID']),
       'agency': inmate['arrests'][0]['arrestingAgency'],
       'facility': jailing_data['Facility'],
