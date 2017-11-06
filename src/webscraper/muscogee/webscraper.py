@@ -11,16 +11,16 @@ from datetime import date
 import csv
 
 #PUT YOUR CHROME DRIVER PATH HERE
-chrome_path = r""
-if chrome_path == "":
-    print("Paste chrome system path into the 'chrome_path' variable in order to run the program")
+# chrome_path = r"C://chromedriver"
+# if chrome_path == "":
+#     print("Paste chrome system path into the 'chrome_path' variable in order to run the program")
     
     
 
 #opens chrome to grab html at url
 #uses chrome because urllib gets ssl errors
 def get_html(url):
-    browser = webdriver.Chrome(chrome_path)
+    browser = webdriver.Chrome()
     browser.get(url)
     html = browser.page_source
     browser.quit()
