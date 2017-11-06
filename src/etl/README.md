@@ -91,7 +91,7 @@ inmate_age | Same as CSV
 inmate_dob | Same as CSV
 inmate_address | Same as CSV
 
-*\*A new inmate is added for each booking, so **Inmates & Bookings** have 1-to-1 relationship. If someone gets booked, released & re-booked **the same person will be on multiple rows. 
+*\*A new inmate is added for each booking, so **Inmates & Bookings** have 1-to-1 relationship. If someone gets booked, released & re-booked the same person will be on multiple rows. 
 Likewise if same person gets booked in multiple counties. Let's assume, statistically speaking, one person booked twice is like two people each booked once (with identical age/race/sex/etc.)*
 
 Counties table | Description
