@@ -88,3 +88,31 @@ ROBOTSTXT_OBEY = True
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+FEED_FORMAT = 'csv'
+FEED_EXPORT_FIELDS = [
+    'county_name',
+    'timestamp',
+    'url',
+    'inmate_id',
+    'inmate_lastname',
+    'inmate_firstname',
+    'inmate_middlename',
+    'inmate_sex',
+    'inmate_race',
+    'inmate_age',
+    'inmate_dob',
+    'inmate_address',
+    'booking_timestamp',
+    'release_timestamp',
+    'processing_numbers',
+    'agency',
+    'facility',
+    'charges',
+    'severity',
+    'bond_amount',
+    'current_status',
+    'court_dates',
+    'days_jailed',
+    'other'
+]
