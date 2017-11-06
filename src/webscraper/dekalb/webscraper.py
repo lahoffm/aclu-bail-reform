@@ -97,7 +97,7 @@ with open('./../../../data/dekalb_' + label + '.csv', 'w', newline='') as new_fi
 
     inmate_dict = {
       'county_name': 'dekalb',
-      'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ' EST',
+      'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S EST'),
       'url': view_url,
       'inmate_id': inmate['bookingNumber'],
       'inmate_lastname': name.last,

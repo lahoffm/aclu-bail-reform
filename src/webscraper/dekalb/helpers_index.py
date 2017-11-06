@@ -88,21 +88,6 @@ def parse_timestamp(date_string, time_string):
   tm = t_split.split('-')[0]
   return dt + ' ' + tm + ' EST'
 
-# def get_booking_timestamp(date_string, time_string):
-#   m,d,y = re.split('/', date_string)
-#   dt = date(int(y), int(m), int(d)).isoformat()
-#   t_split = time_string.split('T')[1]
-#   tm = t_split.split('-')[0]
-#   return dt + ' ' + tm + ' EST'
-
-# def get_release_timestamp(release_string):
-#   if release_string.startswith('0001') or release_string.startswith('1900'):
-#     return None
-#   else:
-#     dt,t_part = re.split('T', release_string)
-#     tm = t_part.split('-')[0]
-#     return dt + ' ' + tm + ' EST'
-
 def get_days_jailed(book_date_str, book_time_str, release_str):
   book_ts = parse_timestamp(book_date_str, book_time_str)
   if book_ts == None:
