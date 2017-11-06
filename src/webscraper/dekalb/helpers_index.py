@@ -69,35 +69,44 @@ def get_ids_str(so, booking, jail, arrest):
 def get_dob_str(dob):
   if dob == None:
     return None
-  else:
-    m,d,y = re.split('/', dob)
-    return date(int(y), int(m), int(d)).isoformat()
+  m,d,y = re.split('/', dob)
+  return date(int(y), int(m), int(d)).isoformat()
 
 def get_age(dob):
   if dob == None:
     return None
-  else:
-    d,m,y = re.split('/', dob)
-    calc = agecalc.AgeCalc(int(d), int(m), int(y))
-    return calc.age
+  d,m,y = re.split('/', dob)
+  calc = agecalc.AgeCalc(int(d), int(m), int(y))
+  return calc.age
 
-def get_booking_timestamp(date_string, time_string):
+def parse_timestamp(date_string, time_string):
+  if date_string == None:
+    return None
   m,d,y = re.split('/', date_string)
   dt = date(int(y), int(m), int(d)).isoformat()
   t_split = time_string.split('T')[1]
   tm = t_split.split('-')[0]
   return dt + ' ' + tm + ' EST'
 
-def get_release_timestamp(release_string):
-  if release_string.startswith('0001') or release_string.startswith('1900'):
-    return None
-  else:
-    dt,t_part = re.split('T', release_string)
-    tm = t_part.split('-')[0]
-    return dt + ' ' + tm + ' EST'
+# def get_booking_timestamp(date_string, time_string):
+#   m,d,y = re.split('/', date_string)
+#   dt = date(int(y), int(m), int(d)).isoformat()
+#   t_split = time_string.split('T')[1]
+#   tm = t_split.split('-')[0]
+#   return dt + ' ' + tm + ' EST'
+
+# def get_release_timestamp(release_string):
+#   if release_string.startswith('0001') or release_string.startswith('1900'):
+#     return None
+#   else:
+#     dt,t_part = re.split('T', release_string)
+#     tm = t_part.split('-')[0]
+#     return dt + ' ' + tm + ' EST'
 
 def get_days_jailed(book_date_str, book_time_str, release_str):
-  book_ts = get_booking_timestamp(book_date_str, book_time_str)
+  book_ts = parse_timestamp(book_date_str, book_time_str)
+  if book_ts == None:
+    return None
   book_dt,book_tm,other = re.split(' ', book_ts)
   book_y,book_mo,book_d = re.split('-', book_dt)
   book_h,book_mi,book_s = re.split(':', book_tm)
@@ -105,9 +114,7 @@ def get_days_jailed(book_date_str, book_time_str, release_str):
   start_date = datetime(int(book_y), int(book_mo), int(book_d), int(book_h), int(book_mi), int(book_s))
 
   if release_str.startswith('0001') or release_str.startswith('1900'):
-
     end_date = datetime.now()
-
   else:
     rel_ts = get_release_timestamp(release_str)
     rel_dt,rel_tm,other = re.split(' ', rel_ts)
@@ -116,7 +123,10 @@ def get_days_jailed(book_date_str, book_time_str, release_str):
 
     end_date = datetime(int(rel_y), int(rel_mo), int(rel_d), int(rel_h), int(rel_mi), int(rel_s))
 
-  return (end_date - start_date).days
+  num_days = (end_date - start_date).days
+  if num_days == 0:
+    return '<1'
+  return num_days
 
 fieldnames = [
     'county_name',
