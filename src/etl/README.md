@@ -88,7 +88,8 @@ inmate_race | Same as CSV
 inmate_age | Same as CSV
 inmate_dob | Same as CSV
 inmate_address | Same as CSV
-*\*A new inmate is added for each booking, so **Inmates & Bookings** have 1-to-1 relationship. If someone gets booked, released & re-booked **the same person will be on multiple rows**. 
+
+*\*A new inmate is added for each booking, so **Inmates & Bookings** have 1-to-1 relationship. If someone gets booked, released & re-booked **the same person will be on multiple rows. 
 Likewise if same person gets booked in multiple counties. Let's assume, statistically speaking, one person booked twice is like two people each booked once (with identical age/race/sex/etc.)*
 
 Counties table | Description
@@ -101,13 +102,14 @@ expire_days* | After how many days should booking be marked as `Expired`, relati
 stale_events* | Which event(s) signify booking should be marked as `Stale`? Default=`NaN`
 expire_events* | Which event(s) signify booking should be marked as `Expired`? Like `'Released | Dropped Off Roster'` if there's 2 such events. Default=`NaN`
 other flags to help process each county? | TODO figure these out
+
 *\*Either `stale_days` or `stale_events` should be set, the other should be `NaN`.*  
 *\*Either `expire_days` or `expire_events` should be set, the other should be `NaN`.*
 
 Charges table\* | Description
 ------------ | -------------
 booking_id |  Composite primary key with `charge_number` and foreign key to **Bookings**
-charge_number | Composite primary key with `booking_id`. 1, 2, 3, ... for charge 1, 2, 3 within a given booking
+charge_number | Composite primary key with `booking_id`. 1, 2, 3 for charge 1, 2, 3 within a given booking
 agency | Same as CSV
 charges | Same as CSV
 severity | Same as CSV
@@ -119,7 +121,7 @@ court_dates | Same as CSV
 Bonds table\* | Description
 ------------ | -------------
 booking_id | Composite primary key with `bond_number` and foreign key to **Bookings**
-charge_number | If `NaN`, there's one bond listed for all charges. If there's one bond for each charge it matches the `charge_number` with the same `booking_id` in **Charges**.
+charge_number | If there's one bond across all charges, it's `NaN`. If there's one bond for each charge, it matches the `charge_number` with the same `booking_id` in **Charges**.
 bond_amount | Bond amount in dollars
 bond_text | Any bond-related text
 
@@ -128,18 +130,20 @@ bond_text | Any bond-related text
 Timelines table | Description
 ------------ | -------------
 booking_id | Composite primary key with `timestamp` and foreign key to **Bookings**
-timestamp | Date/time each event happened. Whenever possible, use the jail's timestamps instead of time data was scraped.
+timestamp | Composite primary key with `booking_id`; date/time each event happened. Whenever possible, use the jail's timestamps instead of time data was scraped.
 event | [Event name](#event-type). Anything that happened since the last event, including `No Change` and/or `On Roster` if we did a scrape but the booking info didn't change. **Multiple events can happen for a single scrape!**
 notes | More info about event, like `'Replaced old row A \| B \| C with new row X \| Y \| Z' in Bookings table`
 days_jailed | Days inmate has been sitting in jail as of `timestamp`. Rounded up to nearest day, so 25 hours = 2 days. Set to `NaN` whenever we can't positively confirm that they have indeed been jailed that many days. Also set to `NaN` for events occurring after person was released or dropped off roster.
 total_days_jailed | Total days jailed from booking to release. Only set this for `event = 'Released'`, otherwise `NaN`.
 
 <a name="event-type"></a>
+
 Event names allowed in Timelines table | Description
------------- | -------------
+------------------------------- | -----------------------
 Booked | First event for all bookings. Set its `timestamp` equal to the CSV's `booking_timestamp`. This event is only to mark the time of booking! If someone was booked, released 2 hours later, and all this data was scraped into one CSV file, you should also make a `Released` event.
 Released | Inmate was released. Don't set this when inmate merely dropped off a roster, we don't know they left the roster because they were released!
 Dropped Off Roster | Inmate dropped off roster. Only set this when county posts full inmate roster but no release information.
+Sentenced | Inmate was sentenced for at least one charge, and is no longer pre-trial.
 {fieldname} Changed | Another field changed in the CSV file. For example if `bond_amount` went from `'$1000.00 bond set'` to `'$1000.00 bond posted'` the event name is `'bond_amount Changed'`. If a second field changed, like `current_status` from `'Pre-trial'` to `'Sentenced'`, make a second event `'current_status Changed'`.
 On Roster | Inmate was listed on roster at the time data was scraped. Only set this when county lists full inmate rosters. Otherwise we can't be sure, even if there's no release date. Maybe they were transferred.  **Note: this event is always connected to a particular `booking_id`.** Don't say `On Roster` for one `booking_id` if same inmate is later arrested under a different `booking_id`. *Don't set this when the most recent event was `Stale` or `Expired`.*
 No Change | Nothing changed since the most recent event. When county lists full inmate rosters, set both `On Roster` and `No change`. Otherwise just set `No Change`. *Don't set this when the most recent event was `Stale` or `Expired`.*
