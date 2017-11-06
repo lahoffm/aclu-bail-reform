@@ -1,11 +1,10 @@
-# Web Scraper for Dekalb County Jail Records
+# Web Scraper for DeKalb County Jail Records
 
-This Python-based web scraper scrapes Dekalb County jail records from the [Dekalb County - Judicial Information System](https://ody.dekalbcountyga.gov/app/JailSearch/#/search) website.
+This Python-based web scraper scrapes DeKalb County jail records from the [DeKalb County - Judicial Information System](https://ody.dekalbcountyga.gov/app/JailSearch/#/search) website.
 
 The purpose of this project is to help build a case for the [ACLU Bail Reform Project](https://github.com/lahoffm/aclu-bail-reform#aclu-bail-reform-project) in the state of Georgia.
 
 ## Installation Requirements
-
 - Python 3.6.3
 
 ```
@@ -15,7 +14,6 @@ pip install -r requirements.txt
 Required packages are listed in [`requirements.txt`](https://github.com/lahoffm/aclu-bail-reform/blob/master/src/webscraper/dekalb/requirements.txt).
 
 ## Commands & Usage
-
 - The following commands output a CSV file (dekalb-\*.csv) in the [`data`](https://github.com/lahoffm/aclu-bail-reform/tree/master/data) folder.
 - Each row is a jail record. Jail records are sorted by inmate booking number.
 - An inmate may have multiple records if there are multiple charges.
@@ -41,11 +39,6 @@ python webscraper.py custom 1900-01-01
 ```
 Scrapes all records for a custom date. A **custom date** (yyyy-mm-dd) must be specified as an argument. If there are no records for a specified date, it will respond with `No records found.`
 
-#### Default
-```
-python webscraper.py
-```
-Scrapes records starting from index 0 for 100 records.
 
 ## Available Data
 | Column Name                     | Data Available
@@ -87,4 +80,4 @@ Scrapes records starting from index 0 for 100 records.
 \* *charges*, *severity*, *bond_amount* and *current_status* are parallel data. *bond_amount* contains bond type only. *current_status* is charge disposition. 
 
 ## Contributing
-If you want to [contribute](https://github.com/lahoffm/aclu-bail-reform/blob/master/CONTRIBUTING.md) to the ACLU Bail Reform Project, contact [project owner](https://github.com/lahoffm/aclu-bail-reform).
+If you want to [contribute](https://github.com/lahoffm/aclu-bail-reform/blob/master/CONTRIBUTING.md) to the ACLU Bail Reform Project, contact the [project organizer](https://github.com/lahoffm/aclu-bail-reform).
