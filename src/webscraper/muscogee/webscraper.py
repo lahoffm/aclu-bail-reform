@@ -10,12 +10,7 @@ from time import gmtime, strftime
 from datetime import date
 import csv
 
-#PUT YOUR CHROME DRIVER PATH HERE
-chrome_path = r""
-if chrome_path == "":
-    print("Paste chrome system path into the 'chrome_path' variable in order to run the program")
-    
-    
+chrome_path = "chromedriver.exe"    
 
 #opens chrome to grab html at url
 #uses chrome because urllib gets ssl errors
@@ -78,7 +73,7 @@ fieldnames = ["county_name",        #'Muscogee'
 def muscogee_to_csv(data, isIntake, url, notes = ""):
     datatype = "release"
     if isIntake: datatype = "intake"
-    with open("muscogee_" + datatype + "_" + postgre_timestamp().replace(":","-") + ".csv",
+    with open("../../../data/muscogee_" + datatype + "_" + postgre_timestamp().replace(":","-") + ".csv",
               "w") as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
@@ -115,8 +110,9 @@ def convert_timestamp(timestamp):
     else: return ""
 
 def name_seperation(full_name):
+    #The following line works because the docket uses two spaces when there is no middle name
     split_name = full_name.rstrip().split(" ")
-    if len(split_name) >= 3: return [split_name[0], split_name[1], split_name[-1]]
+    if len(split_name) == 3: return [split_name[0], split_name[1], split_name[-1]]
     else: return ["","",""]
 
 def age(birth_year):
@@ -129,12 +125,12 @@ def parse_race(r):
 #------------------------------------------------------------------------
 
 def main():
-    url = "https://ccg-domino9.columbusga.org/appl/MCSOJailInmateInformation.nsf/Web14DayIntake?OpenView&Start=11&Count=99999"
+    url = "https://ccg-domino9.columbusga.org/appl/MCSOJailInmateInformation.nsf/Web14DayIntake?OpenView&Start=1&Count=99999"
     data = scrape_muscogee_docket(url, True)
-    muscogee_to_csv(data, True, url)
+    muscogee_to_csv(data, True, "https://www.columbusga.org/sheriff/InmateSearch.htm")
     url = "https://ccg-domino9.columbusga.org/appl/MCSOJailInmateInformation.nsf/Web14DayRelease?OpenView&Start=1&Count=99999"
     data = scrape_muscogee_docket(url, False)
-    muscogee_to_csv(data, False, url)
+    muscogee_to_csv(data, False, "https://www.columbusga.org/sheriff/InmateSearch.htm")
 
 
 main()
