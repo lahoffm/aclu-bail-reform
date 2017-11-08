@@ -81,7 +81,7 @@ def muscogee_to_csv(data, isIntake, url, notes = ""):
             #Maybe put this part in its own function
             name = name_seperation(entry[2])
             writer.writerow({'county_name': 'Muscogee',
-                             'timestamp': postgre_timestamp(timezone = True),
+                             'timestamp': postgre_timestamp(timezone = True).replace("_"," "),
                              'url': url,
                              'inmate_lastname': name[2],
                              'inmate_firstname': name[0],
