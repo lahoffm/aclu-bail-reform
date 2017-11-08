@@ -15,7 +15,7 @@ chrome_path = "chromedriver.exe"
 #opens chrome to grab html at url
 #uses chrome because urllib gets ssl errors
 def get_html(url):
-    browser = webdriver.Chrome(chrome_path)
+    browser = webdriver.Chrome()
     browser.get(url)
     html = browser.page_source
     browser.quit()
@@ -81,7 +81,7 @@ def muscogee_to_csv(data, isIntake, url, notes = ""):
             #Maybe put this part in its own function
             name = name_seperation(entry[2])
             writer.writerow({'county_name': 'Muscogee',
-                             'timestamp': postgre_timestamp(timezone = True),
+                             'timestamp': postgre_timestamp(timezone = True).replace("_"," "),
                              'url': url,
                              'inmate_lastname': name[2],
                              'inmate_firstname': name[0],
