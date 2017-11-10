@@ -33,9 +33,9 @@ class ScraperAthensClarke(object):
         """ Scrape main page then each inmate's subpage with more details.
             Assemble results into pandas dataframe in standard format and dump to CSV file."""
             
-        html_main = self.scrape_main_roster() # current inmate roster
-        self.scrape_sub(html_main, 'roster')
-        self.dump('current-inmate-roster')
+        #html_main = self.scrape_main_roster() # current inmate roster
+        #self.scrape_sub(html_main, 'roster')
+        #self.dump('current-inmate-roster')
         
         html_main = self.scrape_main_booking() # recent bookings ("arrests last 7 days")
         self.scrape_sub(html_main, 'booking')
@@ -442,8 +442,9 @@ class ScraperAthensClarke(object):
         inmate_race = inmate_race.str.replace('black/african american', 'black')\
                                  .str.replace('hispanic or latino', 'hispanic')\
                                  .str.replace('middle eastern decent', 'middle-eastern')\
+                                 .str.replace('american indian/alaskan native', 'native-american')\
                                  .str.replace('unknown', '') # leave race blank in this case. previous line: they had a "descent" typo
-        assert np.isin(inmate_race.unique(), np.array(['asian','white','black','hispanic','middle-eastern',''])).all(),\
+        assert np.isin(inmate_race.unique(), np.array(['asian','white','black','hispanic','native-american','middle-eastern',''])).all(),\
                      "One or more of these races not converted to standard format: " + str(inmate_race.unique())
         self.df['inmate_race'] = inmate_race
         
