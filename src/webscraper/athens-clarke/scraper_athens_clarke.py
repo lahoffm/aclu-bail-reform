@@ -33,9 +33,9 @@ class ScraperAthensClarke(object):
         """ Scrape main page then each inmate's subpage with more details.
             Assemble results into pandas dataframe in standard format and dump to CSV file."""
             
-        #html_main = self.scrape_main_roster() # current inmate roster
-        #self.scrape_sub(html_main, 'roster')
-        #self.dump('current-inmate-roster')
+        html_main = self.scrape_main_roster() # current inmate roster
+        self.scrape_sub(html_main, 'roster')
+        self.dump('current-inmate-roster')
         
         html_main = self.scrape_main_booking() # recent bookings ("arrests last 7 days")
         self.scrape_sub(html_main, 'booking')
