@@ -13,7 +13,7 @@ call activate python_363
 
 REM Counties cannot have spaces, and must match name of the folder containing
 REM the main scrape program for that county.
-set counties= athens-clarke bibb\jailCrawler dekalb glynn
+set counties= athens-clarke bibb\jailCrawler dekalb glynn muscogee
 
 REM We want Dekalb to scrape yesterday's records because
 REM sometimes today's records aren't updated until tomorrow.
@@ -44,6 +44,9 @@ for %%i in (%counties%) do (
     )
     IF "%%i"=="glynn" (
         set scrape_cmd= python webscraper_main.py
+    )
+    IF "%%i"=="muscogee" (
+        set scrape_cmd= python webscraper.py
     )
     
     REM Starts new command window with title %%i running command %%scrape_cmd%%

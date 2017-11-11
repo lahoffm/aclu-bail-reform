@@ -146,6 +146,7 @@ assert np.isin(df_pdf['current_status'].unique(), np.array(['',
                                                             'Nolle Prosequi',
                                                             'Court Release',
                                                             'Time Served',
+                                                            'Own Recognizance',
                                                             'Municipal Court', # part of two-liner
                                                             'Release', # part of two-liner
                                                             'No Warrant', # part of two-liner
