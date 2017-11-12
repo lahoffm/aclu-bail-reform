@@ -220,13 +220,8 @@ for num,i in enumerate(inmates_info.keys()):
                             if type(inmates_info[i][x+p].loc[z+a][3])==type(float(0)) or 'BondingInfo'==inmates_info[i][x+p].loc[z+a][3]:
                                 continue
                             elif 'violation' in inmates_info[i][x+p].loc[z+a][3].lower() or 'petty' in inmates_info[i][x+p].loc[z+a][3].lower() or 'misdemeanor' in inmates_info[i][x+p].loc[z+a][3].lower() or 'felony' in inmates_info[i][x+p].loc[z+a][3].lower():
-                                charg_ind=str(inmates_info[i][x+p].loc[z+a][3])
-                                charg+=charg_ind.split(" ")[0]+' | '
-                                try:
-                                    inmate_row_i['other']+=charg_ind.split(" ")[1]+' '+str(inmates_info[i][x+p].loc[z+a][4])+' | '
-                                except Exception as e:
-                                    print(e)
-                                    pass
+                                charg_ind=str(inmates_info[i][x+p].loc[z+a][2])
+                                charg+=charg_ind+' | '
                                 remain+=1
                         
                 else:
@@ -234,18 +229,12 @@ for num,i in enumerate(inmates_info.keys()):
                         if type(inmates_info[i][x].loc[z+p][3])==type(float(0)) or 'BondingInfo'==inmates_info[i][x].loc[z+p][3]:
                             continue
                         elif 'violation' in inmates_info[i][x].loc[z+p][3].lower() or 'petty' in inmates_info[i][x].loc[z+p][3].lower() or 'misdemeanor' in inmates_info[i][x].loc[z+p][3].lower() or 'felony' in inmates_info[i][x].loc[z+p][3].lower():
-                            charg_ind=str(inmates_info[i][x].loc[z+p][3])
-                            charg+=charg_ind.split(" ")[0]+' | '
-                            try:
-                                inmate_row_i['other']+=charg_ind.split(" ")[1]+' '+str(inmates_info[i][x].loc[z+p][4])+' | '
-                            except Exception as e:
-                                print(e)
-                                pass
+                            charg_ind=str(inmates_info[i][x].loc[z+p][2])
+                            charg+=charg_ind+' | '
                 charg=charg[0:-2]
                 inmate_row_i[k]=charg
             except Exception as e:
                 inmate_row_i['notes']+=' Error with column '+k+': '+str(e)+' | '
-
         if k=='severity':
             try:
                 for p in range(len(inmates_info[i])):
@@ -278,8 +267,13 @@ for num,i in enumerate(inmates_info.keys()):
                             if type(inmates_info[i][x+p].loc[z+a][3])==type(float(0)) or 'BondingInfo'==inmates_info[i][x+p].loc[z+a][3]:
                                 continue
                             elif 'violation' in inmates_info[i][x+p].loc[z+a][3].lower() or 'petty' in inmates_info[i][x+p].loc[z+a][3].lower() or 'misdemeanor' in inmates_info[i][x+p].loc[z+a][3].lower() or 'felony' in inmates_info[i][x+p].loc[z+a][3].lower():
-                                charg_ind=str(inmates_info[i][x+p].loc[z+a][2])
-                                charg+=charg_ind+' | '
+                                charg_ind=str(inmates_info[i][x+p].loc[z+a][3])
+                                charg+=charg_ind.split(" ")[0]+' | '
+                                try:
+                                    inmate_row_i['other']+=charg_ind.split(" ")[1]+' | '
+                                except Exception as e:
+                                    print(e)
+                                    pass
                                 remain+=1
                         
                 else:
@@ -287,8 +281,13 @@ for num,i in enumerate(inmates_info.keys()):
                         if type(inmates_info[i][x].loc[z+p][3])==type(float(0)) or 'BondingInfo'==inmates_info[i][x].loc[z+p][3]:
                             continue
                         elif 'violation' in inmates_info[i][x].loc[z+p][3].lower() or 'petty' in inmates_info[i][x].loc[z+p][3].lower() or 'misdemeanor' in inmates_info[i][x].loc[z+p][3].lower() or 'felony' in inmates_info[i][x].loc[z+p][3].lower():
-                            charg_ind=str(inmates_info[i][x].loc[z+p][2])
-                            charg+=charg_ind+' | '
+                            charg_ind=str(inmates_info[i][x].loc[z+p][3])
+                            charg+=charg_ind.split(" ")[0]+' | '
+                            try:
+                                inmate_row_i['other']+=charg_ind.split(" ")[1]+' | '
+                            except Exception as e:
+                                print(e)
+                                pass
                 charg=charg[0:-2]
                 inmate_row_i[k]=charg
             except Exception as e:
@@ -306,7 +305,7 @@ for num,i in enumerate(inmates_info.keys()):
         if k=='bond_amount':
             bond_start=0
             try:
-                charg_bond=''
+                charg_bond=[]
                 charg_num=len(subset_main_df)-1
                 remain=0
                 for p in range(len(inmates_info[i])):
@@ -318,7 +317,7 @@ for num,i in enumerate(inmates_info.keys()):
                             if inmates_info[i][x+p].loc[s][0]=='Bond Amount':
                                 if bond_start!=0:
                                     charg_bond+=' | '
-                                charg_bond+=inmates_info[i][x+p].loc[s][1]+' -Bond, '
+                                charg_bond.append(inmates_info[i][x+p].loc[s][1]+' - Bond')
                                 bond_start=1
                                 for j in range(7):
                                     if type(inmates_info[i][x+p].loc[s+j+1][1])==type(1.01):
@@ -326,10 +325,10 @@ for num,i in enumerate(inmates_info.keys()):
                                     elif inmates_info[i][x+p].loc[s+j+1][1]=='Bond Status':
                                         break
                                     else:
-                                        charg_bond+=inmates_info[i][x+p].loc[s+j+1][2]+' -'+inmates_info[i][x+p].loc[s+j+1][1]+', '
+                                        charg_bond.append(inmates_info[i][x+p].loc[s+j+1][2]+' - '+inmates_info[i][x+p].loc[s+j+1][1])
                     except IndexError:
                         pass
-                inmate_row_i[k]=charg_bond
+                inmate_row_i[k]=', '.join(charg_bond)
             except Exception as e:
                 inmate_row_i['notes']+=' Error with column '+k+': '+str(e)+' | '
         if k=='current_status':
@@ -345,7 +344,7 @@ for num,i in enumerate(inmates_info.keys()):
                 inmate_row_i['notes']+=' Error with column '+k+': '+str(e)+' | '
         if k=='other':
             try:
-                inmate_row_i[k]+=inmate_row_i[k][0:-2]+', Address where arrested: '+inmates_info[i][x-2].loc[1][2]
+                inmate_row_i[k]=inmate_row_i[k][0:-2]+', Address where arrested: '+inmates_info[i][x-2].loc[1][2]
             except Exception as e:
                 inmate_row_i['notes']+=' Error with column '+k+': '+str(e)+' | '
         if k=='notes':
