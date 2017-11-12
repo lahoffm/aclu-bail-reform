@@ -51,8 +51,20 @@ for try_attempt in range(0, 3):
 
 
 #Begin Scrapping
-row_links = driver.find_elements_by_css_selector("div.inmpanel > table > tbody > tr > td:first-child > a.poplink")
-row_links_length = len(row_links)
+row_link_ids = []
+row_links_length = 0
+
+for try_attempt in range(0, 2):
+
+    try:
+        row_links = driver.find_elements_by_css_selector("div.inmpanel > table > tbody > tr > td:first-child > a.poplink")
+        
+        row_link_ids = list(map(lambda x: x.get_attribute("id"), row_links))
+        row_links_length = len(row_link_ids)
+    except StaleElementReferenceException:
+        print("Dom updated, trying to get all link IDs again")
+        continue
+    break
 
 booking_number = ""
 full_name = ""
@@ -66,9 +78,7 @@ charges_status = []
 
 for try_attempt in range(0, 3):
     try:
-
-        row_link = row_links[0]
-        row_link_elem = driver.find_element_by_css_selector("a#dlList_lbnLName_0") 
+        row_link_elem = driver.find_element_by_id(row_link_ids[0])
         row_link_elem.click()
         
     except NoSuchElementException as error:
