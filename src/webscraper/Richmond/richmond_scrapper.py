@@ -7,23 +7,52 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from datetime import datetime
-import time
+from selenium.webdriver.support.ui import Select
+from selenium.webdriver.chrome.options import Options  
 
-driver = webdriver.Chrome()
+#Init Driver
+chrome_options = Options()  
+chrome_options.add_argument("--headless")  
+
+driver = webdriver.Chrome(chrome_options=chrome_options)
 driver.get("http://appweb2.augustaga.gov/InmateInquiry/AltInmatesOnline.aspx")
 
+#Prepare page for scrapping
 try:
-    accept_button = driver.find_element_by_id("btnAccept")
-    accept_button.click()
+        accept_button = driver.find_element_by_id("btnAccept")
+        accept_button.click()
 
-    recent_bookings_button = driver.find_element_by_id("btnRecent")
-    recent_bookings_button.click()
+        recent_bookings_button = driver.find_element_by_id("btnRecent")
+        recent_bookings_button.click()
 except NoSuchElementException as error:
-    print("Error: {0}".format(error))
-    exit()
+        print("Error: {0}".format(error))
+        exit()
+
+for try_attempt in range(0, 3):
+    try:
+        select = Select(driver.find_element_by_name("ddlPerPage2"))
+        row_options = select.options
+        largest_option = row_options[0]
+
+        for option in select.options:
+            if int(largest_option.get_attribute("value")) < int(option.get_attribute("value")):
+                largest_option = option
+        
+        select.select_by_value(largest_option.get_attribute("value"))
+        print("Picked", largest_option.get_attribute("value"), "as the largest option")
+    except NoSuchElementException as error:
+        print("Error: {0}".format(error))
+        exit()
+    except StaleElementReferenceException:
+        print("Dom updated, retrying page preparation")
+        continue
+    break
 
 
+
+#Begin Scrapping
 row_links = driver.find_elements_by_css_selector("div.inmpanel > table > tbody > tr > td:first-child > a.poplink")
+row_links_length = len(row_links)
 
 booking_number = ""
 full_name = ""
@@ -35,7 +64,7 @@ charges = []
 charges_bond = []
 charges_status = []
 
-for try_attempt in range(0, 2):
+for try_attempt in range(0, 3):
     try:
 
         row_link = row_links[0]
@@ -85,6 +114,8 @@ print(booking_number, full_name, arrest_date, race, sex, age)
 print(charges)
 print(charges_bond)
 print(charges_status)
+
+
 
 # county_name = "Richmond"
 # timestamp = datetime.now()
