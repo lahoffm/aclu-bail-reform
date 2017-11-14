@@ -1,4 +1,4 @@
-# Database Specification - I welcome suggestions to improve this
+# Database Specification
 
 ## Philosophy
 The fundamental entities are "bookings".
@@ -7,26 +7,10 @@ Across database, booking data is linked by unique `booking_id`.
 For example, a booking has a county, an inmate, one or more charges & bonds. 
 Each booking also has a timeline; chronological entries in the **Timelines** table. These log all events that happen to the booking and # days jailed when it occurred. 
 
-## Why make a timeline instead of just a `release_date` field?
-We want to know how long people are jailed pre-trial, but [each county posts different information](https://github.com/lahoffm/aclu-bail-reform/blob/master/docs/County-jail-summaries.xlsx) about inmate releases. Some post nothing. 
-Some only have current roster, so we have to see when they dropped off roster (but they could have been transferred or sentenced). 
-Some only post bookings for the last 3 days, and whether those people were released. This means we have no idea what happened to someone that was not released as of day 3. And so on.
-
-It's cleaner to make a timeline of everything that happens to each booking and let the API/visualization extract meaningful info *keeping in mind the county's peculiarities*. 
-For example, it could use the `'Released'` event to get `total_days_jailed` for all inmates that were released in a given month, 
-or the `'On Roster'` event to get `days_jailed` for all inmates on the roster on a particular day. 
-
-There are more advantages to using a timeline. We will know what happened every single time we scraped, even if nothing changed, like "still on roster day 10, still on roster day 11, ...". 
-We can log when other information changes, like a charge's `current_status`. Finally, we can log when a booking gets stale or expired, indicating it is unlikely we will get new information.
-
-## How to ensure chronological integrity
-We want to initialize a booking when we first scrape info about it, and update every time a subsequent scrape reveals new info. 
-When constructing and updating database **always go from earliest to most recent scraped CSV** according to timestamp in CSV filename. 
-This will work even if we query past data, like getting Nov 2017 bookings in Jan 2018. If those bookings are already in database (via daily scrapes we did in Nov 2017) the new data is just updated info.
-If we never scraped Nov 2017, the new data is just a set of new bookings to initialize. Same thing if we re-query Nov 2017 in Feb 2018.
-
-## Database tables
+## Database table specification
 All timestamps are in [Postgres timestamp format](https://www.postgresql.org/docs/9.1/static/datatype-datetime.html): `'2004-10-19 10:23:54 EST'`
+
+![Database tables](../../img/database_tables.png)
 
 Bookings table | Description
 ------------ | -------------
@@ -113,6 +97,23 @@ No Change | Nothing changed since the most recent event. When county lists full 
 Stale | Booking is stale, based on `stale_days` or `stale_events` in **Counties**. Set this event when there has been nothing but `No Change` or `On Roster` for `stale_days` days. Also set this event when the most recent event matches one of the `stale_events`.  if an event used to be stale but something changed, there will be a new event that is more recent than `Stale`, effectively restarting the stale checking.
 Expired | Booking is expired, based on `expired_days` or `expired_events` in **Counties**. Set this event when there has been nothing but `No Change`, `On Roster` or `Stale` for `expired_days` days. Also set this event when any event matches one of the `expired_events`. **Never set any event after `Expired`!**
 
+## Why make a timeline instead of just a `release_date` field?
+We want to know how long people are jailed pre-trial, but [each county posts different information](https://github.com/lahoffm/aclu-bail-reform/blob/master/docs/County-jail-summaries.xlsx) about inmate releases. Some post nothing. 
+Some only have current roster, so we have to see when they dropped off roster (but they could have been transferred or sentenced). 
+Some only post bookings for the last 3 days, and whether those people were released. This means we have no idea what happened to someone that was not released as of day 3. And so on.
+
+It's cleaner to make a timeline of everything that happens to each booking and let the API/visualization extract meaningful info *keeping in mind the county's peculiarities*. 
+For example, it could use the `'Released'` event to get `total_days_jailed` for all inmates that were released in a given month, 
+or the `'On Roster'` event to get `days_jailed` for all inmates on the roster on a particular day. 
+
+There are more advantages to using a timeline. We will know what happened every single time we scraped, even if nothing changed, like "still on roster day 10, still on roster day 11, ...". 
+We can log when other information changes, like a charge's `current_status`. Finally, we can log when a booking gets stale or expired, indicating it is unlikely we will get new information.
+
+## How to ensure chronological integrity
+We want to initialize a booking when we first scrape info about it, and update every time a subsequent scrape reveals new info. 
+When constructing and updating database **always go from earliest to most recent scraped CSV** according to timestamp in CSV filename. 
+This will work even if we query past data, like getting Nov 2017 bookings in Jan 2018. If those bookings are already in database (via daily scrapes we did in Nov 2017) the new data is just updated info.
+If we never scraped Nov 2017, the new data is just a set of new bookings to initialize. Same thing if we re-query Nov 2017 in Feb 2018.
 
 ## Algorithm to get info in database
 ```

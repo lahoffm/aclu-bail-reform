@@ -1,13 +1,20 @@
 # Current priorities & timeline
 
-We are using **Python 3.6**.  
-
-* Priority #1 is writing webscrapers for each county, so we can collect daily jail data.
-* Priority #2 is writing ETL/visualization code throughout Nov/Dec 2017.
-* County jail info [here](https://github.com/lahoffm/aclu-bail-reform/blob/master/docs/County-jail-summaries.xlsx)
-* [Pick an unclaimed county](https://github.com/lahoffm/aclu-bail-reform/issues) and start scraping!
+* We are using **Python 3.6**.  
+* **Priority #1** is writing ETL & visualization code throughout Nov/Dec 2017. [Pick an issue related to ETL/visualization](https://github.com/lahoffm/aclu-bail-reform/issues) and post that you want to help, we'll discuss specifics then.
+* **Priority #2** is writing webscrapers for remaining counties, so we can collect daily jail data. [Pick an unclaimed county](https://github.com/lahoffm/aclu-bail-reform/issues) and start scraping!
 * ACLU will lobby at next GA state legislative session starting Jan 2018. Ideally we'll have some visualizations by then. But their bail reform project will be ongoing beyond then.  
+* County jail info [here](https://github.com/lahoffm/aclu-bail-reform/blob/master/docs/County-jail-summaries.xlsx)
+* Our Slack channel is **#aclu-bail-reform** at [codeforatlanta.slack.com](https://codeforatlanta.slack.com)
 
+# Contribute to ETL (extract-transform-load)
+* If you want to help, let us know on the [ETL-related Issues](https://github.com/lahoffm/aclu-bail-reform/issues)) or Slack, we can discuss specific parts to work on.
+* The goal of ETL is to extract info from webscraper CSV files, transform it into a nice format (like identifying duplicate information) and load it into a database.
+* Despite some allusions to Postgres we are starting with **SQLite** so you can start coding without installing a bunch of things.
+* Database specification [here](https://github.com/lahoffm/aclu-bail-reform/blob/master/src/etl/README.md)
+
+# Contribute to visualization
+Still working on ETL
 
 # CSV file format for webscrapers
 
