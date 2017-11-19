@@ -1,29 +1,28 @@
 #!/usr/bin/python
 
+import time
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from datetime import datetime
 from selenium.webdriver.support.ui import Select
-from selenium.webdriver.chrome.options import Options  
+from selenium.webdriver.chrome.options import Options
 
 
 
 #Prepare page for scrapping
 def init_page():
     try:
-            accept_button = driver.find_element_by_id("btnAccept")
-            accept_button.click()
+        accept_button = driver.find_element_by_id("btnAccept")
+        accept_button.click()
 
-            recent_bookings_button = driver.find_element_by_id("btnRecent")
-            recent_bookings_button.click()
+        recent_bookings_button = driver.find_element_by_id("btnRecent")
+        recent_bookings_button.click()
     except NoSuchElementException as error:
             print("Error: {0}".format(error))
-            exit()
+            
 
     for try_attempt in range(0, 3):
         try:
@@ -34,7 +33,6 @@ def init_page():
             for option in select.options:
                 if int(largest_option.get_attribute("value")) < int(option.get_attribute("value")):
                     largest_option = option
-            
             select.select_by_value(largest_option.get_attribute("value"))
             print("Picked", largest_option.get_attribute("value"), "as the largest option")
         except NoSuchElementException as error:
@@ -45,15 +43,24 @@ def init_page():
             continue
         break
 
-#TODO: Extract the number of pages available to walk through
-def get_booking_pages():
-    return []
+def navigate_to_next_page():
+    for try_attempt in range(0, 3):
+        try:
+            next_page_link = driver.find_element_by_id("Pager1_lbnForeOne")
 
-#TODO: Implement logic to navigate to the next page
-#check if next page link is clickable, if it is, click and parse all the booking rows
-#stop when next link is not clickable
-def navigate_to_page(page_num):
-    print("next page lol")
+            if next_page_link.get_attribute("class") == "aspNetDisabled":
+                return False
+
+            next_page_link.click()
+            time.sleep(2)
+        except NoSuchElementException as error:
+            print("Error: {0}".format(error))
+            exit()
+        except StaleElementReferenceException:
+            print("Dom updated, retrying click")
+            continue
+        print("Navigated to next page")
+        return True
 
 def get_links_on_page():
     row_link_ids = []
@@ -156,18 +163,22 @@ def extract_inmate_info_from_page(row_link_id):
         break
 
 #Init Driver
-options = Options()  
+options = Options()
 options.add_argument("headless")
-options.add_argument("disable-gpu")  
-options.add_argument("window-size=1200x600")  #Prevents "Element not clickable issue when running in headless mode"
+options.add_argument("disable-gpu")
+#Prevents "Element not clickable issue when running in headless mode"
+options.add_argument("window-size=1200x600")
 
 driver = webdriver.Chrome(executable_path="./chromedriver.exe", chrome_options=options)
 driver.get("http://appweb2.augustaga.gov/InmateInquiry/AltInmatesOnline.aspx")
 
 init_page()
-row_link_ids = get_links_on_page()
 
-for link_id in row_link_ids:
-    extract_inmate_info_from_page(link_id)
 
-driver.close()
+while True:
+    for link_id in get_links_on_page():
+        extract_inmate_info_from_page(link_id)
+    if not navigate_to_next_page():
+        break
+
+driver.quit()
