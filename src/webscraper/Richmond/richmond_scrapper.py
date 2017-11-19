@@ -157,9 +157,11 @@ def extract_inmate_info_from_page(row_link_id):
 
 #Init Driver
 options = Options()  
-options.add_argument("--headless")  
+options.add_argument("headless")
+options.add_argument("disable-gpu")  
+options.add_argument("window-size=1200x600")  #Prevents "Element not clickable issue when running in headless mode"
 
-driver = webdriver.Chrome(chrome_options=None)
+driver = webdriver.Chrome(chrome_options=options)
 driver.get("http://appweb2.augustaga.gov/InmateInquiry/AltInmatesOnline.aspx")
 
 init_page()
