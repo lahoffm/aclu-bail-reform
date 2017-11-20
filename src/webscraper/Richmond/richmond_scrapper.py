@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import time
+import collections
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import StaleElementReferenceException
@@ -10,7 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.chrome.options import Options
 
-
+InmateExtract = collections.namedtuple("InmateExtract", ["booking_number", "full_name", "arrest_date", "race", "sex", "age", "charges", "charges_bond", "charges_status"])
 
 #Prepare page for scrapping
 def init_page():
@@ -136,18 +137,6 @@ def extract_inmate_info_from_page(row_link_id):
             continue
         break
 
-    print(booking_number, full_name, arrest_date, race, sex, age)
-    print(charges)
-    print(charges_bond)
-    print(charges_status)
-
-    # county_name = "Richmond"
-    # timestamp = datetime.now()
-    # url = "http://appweb2.augustaga.gov/InmateInquiry/AltInmatesOnline.aspx"
-    # inmate_id = ""
-    # inmate_lastname = ""
-    # inmate_firstname = ""
-
     #Close detail modal
     for try_attempt in range(0, 3):
         try:
@@ -161,6 +150,17 @@ def extract_inmate_info_from_page(row_link_id):
             print("Dom updated, retrying click")
             continue
         break
+
+    inmate = InmateExtract(booking_number=booking_number, full_name=full_name, arrest_date=arrest_date, race=race, sex=sex, age=age, charges=charges, charges_bond=charges_bond, charges_status=charges_status)
+    print(inmate)
+    #return inmate
+
+    # county_name = "Richmond"
+    # timestamp = datetime.now()
+    # url = "http://appweb2.augustaga.gov/InmateInquiry/AltInmatesOnline.aspx"
+    # inmate_id = ""
+    # inmate_lastname = ""
+    # inmate_firstname = ""
 
 #Init Driver
 options = Options()
