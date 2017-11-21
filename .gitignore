@@ -2,3 +2,4 @@
 *.log
 /data/*.csv
 /data/*.pdf
+/data/databases/*.db

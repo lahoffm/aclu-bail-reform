@@ -8,7 +8,7 @@
 * Our Slack channel is **#aclu-bail-reform** at [codeforatlanta.slack.com](https://codeforatlanta.slack.com)
 
 # Contribute to ETL (extract-transform-load)
-* If you want to help, let us know on the [ETL-related Issues](https://github.com/lahoffm/aclu-bail-reform/issues)) or Slack, we can discuss specific parts to work on.
+* If you want to help, let us know on the [ETL-related Issues](https://github.com/lahoffm/aclu-bail-reform/issues) or Slack, we can discuss specific parts to work on.
 * The goal of ETL is to extract info from webscraper CSV files, transform it into a nice format (like identifying duplicate information) and load it into a database.
 * Despite some allusions to Postgres we are starting with **SQLite** so you can start coding without installing a bunch of things.
 * Database specification [here](https://github.com/lahoffm/aclu-bail-reform/blob/master/src/etl/README.md)
