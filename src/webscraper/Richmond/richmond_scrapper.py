@@ -1,7 +1,10 @@
 #!/usr/bin/python
 
+from datetime import datetime
 import time
 import collections
+import csv
+import re
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import StaleElementReferenceException
@@ -12,6 +15,14 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.chrome.options import Options
 
 InmateExtract = collections.namedtuple("InmateExtract", ["booking_number", "full_name", "arrest_date", "race", "sex", "age", "charges", "charges_bond", "charges_status"])
+Inmate = collections.namedtuple("Inmate", [
+    "county_name", "timestamp", "url", 
+    "inmate_id", "inmate_lastname", "inmate_firstname", "inmate_middlename",
+    "inmate_sex", "inmate_race", "inmate_age", "inmate_dob", "inmate_address",
+    "booking_timestamp", "release_timestamp", "processing_numbers",
+    "agency", "facility", "charges", "severity", "bond_amount", "current_status",
+    "court_dates", "days_jailed", "other", "notes"
+    ])
 
 #Prepare page for scrapping
 def init_page():
@@ -133,7 +144,7 @@ def extract_inmate_info_from_page(row_link_id):
                 charges_bond.append(charge_bond)
                 charges_status.append(charge_status)
         except StaleElementReferenceException:
-            print("Dom updated, trying again")
+            #print("Dom updated, trying again")
             continue
         break
 
@@ -151,16 +162,108 @@ def extract_inmate_info_from_page(row_link_id):
             continue
         break
 
-    inmate = InmateExtract(booking_number=booking_number, full_name=full_name, arrest_date=arrest_date, race=race, sex=sex, age=age, charges=charges, charges_bond=charges_bond, charges_status=charges_status)
-    print(inmate)
-    #return inmate
+    inmate = InmateExtract(
+        booking_number=booking_number,
+        full_name=full_name,
+        arrest_date=arrest_date,
+        race=race,
+        sex=sex,
+        age=age,
+        charges=charges,
+        charges_bond=charges_bond,
+        charges_status=charges_status
+        )
+    return inmate
 
-    # county_name = "Richmond"
-    # timestamp = datetime.now()
-    # url = "http://appweb2.augustaga.gov/InmateInquiry/AltInmatesOnline.aspx"
-    # inmate_id = ""
-    # inmate_lastname = ""
-    # inmate_firstname = ""
+def to_csv(inmate_extracts):
+    #todo: generate file name
+    date = datetime.today().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = "richmond_recent-bookings_{}.csv".format(date)
+    with open(filename, "w") as csv_file:
+        writer = csv.writer(csv_file, lineterminator="\n")
+
+        for inmate in inmate_extracts:
+            print(inmate)
+            lastname = ""
+            firstname = ""
+            middlename = ""
+            age = ""
+
+            try:
+                m = re.search("(\w+),\s(\w+)\s?(\w+)", inmate.full_name)
+                lastname = m.group(1)
+                firstname = m.group(2)
+
+                #First name probably contains a middle name
+                if len(m.groups()) > 2:
+                    middlename = m.group(3)
+            except AttributeError:
+                print("Regex for name failed to match:", inmate.full_name)
+                exit()
+            
+            try:
+                m = re.search("(\d+)", inmate.age)
+                age = m.group(1)
+            except AttributeError:
+                print("Regex for age failed:", inmate.age)
+                exit()
+
+            county_name = "Richmond"
+            timestamp = datetime.now()
+            url = "http://appweb2.augustaga.gov/InmateInquiry/AltInmatesOnline.aspx"
+            inmate_id = ""
+            inmate_lastname = lastname
+            inmate_firstname = firstname
+            inmate_middlename = middlename
+            inmate_sex = inmate.sex.lower()[0] 
+            inmate_race = inmate.race.lower()
+            inmate_age = age
+            inmate_dob = ""
+            inmate_address = ""
+            booking_timestamp = datetime.strptime(inmate.arrest_date, "%m/%d/%Y").strftime("%Y-%m-%d %H:%M:%S")
+            release_timestamp = ""
+            processing_numbers = inmate.booking_number
+            agency = "Richmond County Sheriff's Office"
+            facility = ""
+            charges = " | ".join(inmate.charges)
+            severity = ""
+            bond_amount = " | ".join(inmate.charges_bond)
+            current_status = " | ".join(inmate.charges_status)
+            court_dates = ""
+            days_jailed = ""
+            other = ""
+            notes = ""
+
+            writer.writerow([
+                county_name,
+                timestamp,
+                url,
+                inmate_id,
+                inmate_lastname,
+                inmate_firstname,
+                inmate_middlename,
+                inmate_sex,
+                inmate_race,
+                inmate_age,
+                inmate_dob,
+                inmate_address,
+                booking_timestamp,
+                release_timestamp,
+                processing_numbers,
+                agency,
+                facility,
+                charges,
+                severity,
+                bond_amount,
+                current_status,
+                court_dates,
+                days_jailed,
+                other,
+                notes
+                ])
+    print("Generated CSV")
+
+
 
 #Init Driver
 options = Options()
@@ -174,11 +277,15 @@ driver.get("http://appweb2.augustaga.gov/InmateInquiry/AltInmatesOnline.aspx")
 
 init_page()
 
+extracts = []
 
 while True:
     for link_id in get_links_on_page():
-        extract_inmate_info_from_page(link_id)
+       inmate_extract = extract_inmate_info_from_page(link_id)
+       extracts.append(inmate_extract)
     if not navigate_to_next_page():
         break
 
 driver.quit()
+
+to_csv(extracts)
