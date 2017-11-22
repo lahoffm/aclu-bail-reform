@@ -1,0 +1,3 @@
+# ETL runs under Python 3.6.3
+
+pandas >= 0.20.3
