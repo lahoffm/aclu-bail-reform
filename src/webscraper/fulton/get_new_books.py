@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Oct 22 10:41:35 2017
-
-@author: zander
-"""
-
 from scraper import scrape
 from selenium import webdriver
 import csv
@@ -14,24 +6,20 @@ import re
 from datetime import datetime
 from functools import reduce
 
-# This script runs each day. It starts by checking some log files that 
-# initialize it. It then scrapes the Fulton County jail website, until some
-# logic indicates it should stop scraping. It then saves a csv file containing 
-# the data we scraped, and updates the log files for the next day.
-
-# bring in info from log files
-
 current_record = int( open('last_record.txt','r').read() ) + 1
 
 formatted_time = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-csv_name_string = '../../../data/fulton'+'_'+formatted_time+'.csv'
+csv_name_string = '../../../data/fulton_'+formatted_time+'.csv'
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 chrome_path = os.path.join(dir_path,"chromedriver")
 driver = webdriver.Chrome(chrome_path)
 
+with open('unreleased.txt','r') as f:
+    unreleased = f.readlines()
+unreleased = set([int(x.strip()) for x in unreleased])
+
 empty_counter = 0
-unreleased = []
 
 fieldnames = ['county_name',
               'timestamp',
@@ -75,10 +63,8 @@ while True:
         par_res['url'] = None
         par_res['inmate_age'] = None
         par_res['inmate_dob'] = None
-        par_res['severity'] = None
         par_res['court_date'] = None
         par_res['days_jailed'] = None
-        par_res['other'] = None
         par_res['notes'] = ''
         par_res['county_name'] = 'fulton'
         par_res['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S EST')
@@ -104,7 +90,7 @@ while True:
             par_res['notes'] = par_res['notes']+'no booking date recorded; '
         rel_date = cur_res[1][2].split(':')[1].strip()
         if rel_date == '':
-            unreleased.append(current_record)
+            unreleased.add(current_record)
         else:
             par_res['release_timestamp'] = datetime.strptime(rel_date, '%m/%d/%Y').strftime('%Y-%m-%d')
         
@@ -116,20 +102,32 @@ while True:
         if num_charges > 0:
             charge_list = [re.sub('|','',cur_res[13+i][1]) for i in range(num_charges)]
             par_res['charges'] = reduce((lambda x,y: x + ' | ' + y), charge_list)
+            sev_list = ['' for x in range(num_charges)]
+            for charge in range(num_charges):
+                if 'Felony' in charge_list[charge]:
+                    sev_list[charge] = 'Felony'
+                if 'Misdemeanor' in charge_list[charge]:
+                    sev_list[charge] = 'Misdemeanor'
+            par_res['severity'] = reduce((lambda x,y: x + ' | ' + y), sev_list)
             
-            bond_list = [re.sub('\D','',cur_res[13+i][4])[:-2] for i in range(num_charges)]
-            for i in range(len(bond_list)):
-                if bond_list[i] != '':
-                    bond_list[i] = '$' + bond_list[i]
+            bond_amount_list = [re.sub('\D','',cur_res[13+i][4])[:-2] for i in range(num_charges)]
+            for i in range(len(bond_amount_list)):
+                if bond_amount_list[i] != '':
+                    bond_amount_list[i] = '$' + bond_amount_list[i]        
+            bond_type_list = [re.sub('[^a-zA-Z\s]','',cur_res[13+i][4]) for i in range(num_charges)]
+            bond_list = [ bond_amount_list[i]+' '+bond_type_list[i] for i in range(num_charges)]
             par_res['bond_amount'] = reduce((lambda x,y: x + ' | ' + y), bond_list)
             
             disp_list = [re.sub('|','',cur_res[13+i][6]) for i in range(num_charges)]
             par_res['current_status'] = reduce((lambda x,y: x + ' | ' + y), disp_list)
             
+            offense_d_list = [cur_res[13+i][3] for i in range(num_charges)]
+            par_res['other'] = reduce((lambda x,y: x + ' | ' + y), offense_d_list)
         else:
             par_res['charges'] = None
             par_res['bond_amount'] = None
             par_res['current_status'] = None
+            par_res['severity'] = None
         
         with open(csv_name_string, 'a') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames, lineterminator='\n')
@@ -144,23 +142,9 @@ last_record_scraped = current_record - 20
 with open('last_record.txt', 'w') as f:
     f.write(str(last_record_scraped))
 
+unreleased_file = open('unreleased.txt','w')
+for booking in unreleased:
+  unreleased_file.write("%s\n" % booking)
+unreleased_file.close()
 
-#scraped_records = {}
-#september = datetime.strptime('09/01/2017','%m/%d/%Y')
-#def scrape_til_date(start_record, date):
-#    current_record = start_record
-#    while True:
-#        scraped_records[current_record] = scrape(driver, current_record)
-#        if current_record % 20 == 0:
-#            if scraped_records[current_record] == []:
-#                break
-#            current_date_str = scraped_records[current_record][1][1].split(':')[1].strip()
-#            current_date = datetime.strptime(current_date_str, '%m/%d/%Y')
-#            if current_date > date:
-#                return
-#        current_record = current_record + 1
-#        
-#scrape_til_september(starting_record, september)
-
-
-#driver.close()
+driver.close()
