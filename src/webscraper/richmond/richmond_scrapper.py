@@ -15,14 +15,13 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.chrome.options import Options
 
 InmateExtract = collections.namedtuple("InmateExtract", ["booking_number", "full_name", "arrest_date", "race", "sex", "age", "charges", "charges_bond", "charges_status"])
-Inmate = collections.namedtuple("Inmate", [
-    "county_name", "timestamp", "url", 
+columns =  ["county_name", "timestamp", "url", 
     "inmate_id", "inmate_lastname", "inmate_firstname", "inmate_middlename",
     "inmate_sex", "inmate_race", "inmate_age", "inmate_dob", "inmate_address",
     "booking_timestamp", "release_timestamp", "processing_numbers",
     "agency", "facility", "charges", "severity", "bond_amount", "current_status",
-    "court_dates", "days_jailed", "other", "notes"
-    ])
+    "court_dates", "days_jailed", "other", "notes"]
+Inmate = collections.namedtuple("Inmate", columns)
 
 #Prepare page for scrapping
 def init_page():
@@ -176,11 +175,12 @@ def extract_inmate_info_from_page(row_link_id):
     return inmate
 
 def to_csv(inmate_extracts):
-    #todo: generate file name
     date = datetime.today().strftime("%Y-%m-%d_%H-%M-%S")
-    filename = "richmond_recent-bookings_{}.csv".format(date)
+    dir_ = '../../../data'
+    filename = dir_ + "/richmond_recent-bookings_{}.csv".format(date)
     with open(filename, "w") as csv_file:
         writer = csv.writer(csv_file, lineterminator="\n")
+        writer.writerow(columns)
 
         for inmate in inmate_extracts:
             print(inmate)
@@ -208,8 +208,8 @@ def to_csv(inmate_extracts):
                 print("Regex for age failed:", inmate.age)
                 exit()
 
-            county_name = "Richmond"
-            timestamp = datetime.now()
+            county_name = "richmond"
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S EST')
             url = "http://appweb2.augustaga.gov/InmateInquiry/AltInmatesOnline.aspx"
             inmate_id = ""
             inmate_lastname = lastname
@@ -220,7 +220,7 @@ def to_csv(inmate_extracts):
             inmate_age = age
             inmate_dob = ""
             inmate_address = ""
-            booking_timestamp = datetime.strptime(inmate.arrest_date, "%m/%d/%Y").strftime("%Y-%m-%d %H:%M:%S")
+            booking_timestamp = datetime.strptime(inmate.arrest_date, "%m/%d/%Y").strftime("%Y-%m-%d")
             release_timestamp = ""
             processing_numbers = inmate.booking_number
             agency = "Richmond County Sheriff's Office"
