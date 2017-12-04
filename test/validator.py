@@ -152,6 +152,7 @@ def validate_file(file):
       
       header = reader.fieldnames
 
+      # Check file header is in same order as fieldnames_reference (DOES NOT check for switched data; e.g. If charges and severity data are switched but header is in correct order, file will pass this test. Misplaced data will be caught in data validation process.)
       if header != fieldnames_reference:
         log_print('Field names do not match the required format. Order should be:\n{}'.format(('\n').join(fieldnames_reference)))
         # return
