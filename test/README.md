@@ -16,8 +16,7 @@ pip install -r requirements.txt
 python csv_validator.py
 ```
 
-	* Outputs results to a logfile in [`logs`](logs/) folder
-	* Even if tests pass, many other things can go wrong, so I recommend eyeball checks of CSV files.
-	* `unittest` package [documentation](https://docs.python.org/3/library/unittest.html)
+- Outputs results to terminal and a logfile in `logs` folder.
+- Even if tests pass, many other things can go wrong, so I recommend eyeball checks of CSV files.
 
 
