@@ -22,4 +22,4 @@ python csv_validator.py
 - For validation specifics, read comments in `validator.py`
 - Even if tests pass, many other things can go wrong, so eyeball check of CSV files is strongly recommended.
 
-**Note:** An error in one field of a row most likely means the same error exists in all rows for that field. In such cases, log may be repetitive.
+**Warning:** An error in one field of a row most likely means the same error exists in all rows for that field. In such cases, log may be repetitive.
