@@ -21,11 +21,11 @@ with conn: # conn.commit() is called if next statements execute successfully
     conn.executescript("""
         CREATE TABLE bookings (
             booking_id          INTEGER PRIMARY KEY NOT NULL,
-            processing_numbers  TEXT,
+            booking_id_string   TEXT NOT NULL,
+            county_name         TEXT NOT NULL,
             booking_timestamp   TEXT NOT NULL,
             release_timestamp   TEXT,
-            county_name         TEXT NOT NULL,
-            url                 TEXT
+            known_misdemeanor   INTEGER NOT NULL
         );
     """)
 
