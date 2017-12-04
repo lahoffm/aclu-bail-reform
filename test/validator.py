@@ -1,18 +1,20 @@
 import csv
 import re
+import sys
+from logger import *
 
 # If there is a data format error, print error message with row number, field name, incorrect data, and correct format
 def print_message(row, field, incorrect, correct):
-  print("Row " + row + " [" + field + "]: '" + incorrect + "' should " + correct)
+  log_print_red("Row {} [{}]: '{}' should {}".format(row, field, incorrect, correct))
 
-# If charges and severity are not empty, check if count is equal
+# If both charges and severity are not empty, check if count is equal
 def check_charges_and_severity_count(row, charges, severity):
   if charges != '' and severity != '':
     if '|' in charges:
       try:
         assert len(charges.split('|')) == len(severity.split('|'))
       except AssertionError:
-        print("Row " + row + " [charges & severity]: charges and severity should be the same count")
+        log_print("Row " + row + " [charges & severity]: charges and severity should be the same count")
 
 def validate_data(row, field, data, county):
   
@@ -35,13 +37,6 @@ def validate_data(row, field, data, county):
         print_message(row, field, data, 'be YYYY-MM-DD hh:mm:ss EST')   
         error_status = False
 
-    # BOOKING_TIMESTAMP, RELEASE_TIMESTAMP
-    # Check if data is in 'YYYY-MM-DD hh:mm:ss EST' or 'YYYY-MM-DD' format
-    if field in ('booking_timestamp', 'release_timestamp'):
-      if not re.match(r'(^[1-2]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])\s([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\sEST|^[1-2]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]))$', data):
-        print_message(row, field, data, 'be YYYY-MM-DD hh:mm:ss EST')   
-        error_status = False
-
     # URL
     # Check if data starts with 'http://' or 'https://' followed by site address
     if field == 'url':
@@ -49,18 +44,11 @@ def validate_data(row, field, data, county):
         print_message(row, field, data, 'be http://<address> or https://<address>')
         error_status = False
 
-    # INMATE_ID, AGENCY, FACILITY
-    # Check if data contains letters, numbers, spaces only
-    if field in ('inmate_id', 'agency', 'facility'):
-      if not re.match(r'^[A-z0-9 ]+$', data):
-        print_message(row, field, data, 'be letters and numbers only')
-        error_status = False
-
     # INMATE_LASTNAME, INMATE_FIRSTNAME, INMATE_MIDDLENAME
-    # Check if data contains letters, periods, commas, spaces only (punctuation for titles)
+    # Check if data contains letters, periods, commas, spaces only (punctuation for titles (e.g. Jr.) and apostrophe names (e.g. O'Brien))
     if field in ('inmate_lastname', 'inmate_firstname', 'inmate_middlename'):
-      if not re.match(r'^[A-z.,\- ]+$', data):
-        print_message(row, field, data, 'include letters, period, and comma only')
+      if not re.match(r'^[A-z.,\-\' ]+$', data):
+        print_message(row, field, data, 'contain letters, period, comma and apostrophe only')
         error_status = False
 
     # INMATE_SEX
@@ -93,14 +81,6 @@ def validate_data(row, field, data, county):
         print_message(row, field, data, 'be YYYY-MM-DD or YYYY')
         error_status = False
 
-    # INMATE_ADDRESS, PROCESSING_NUMBERS, CHARGES, CURRENT_STATUS
-    # Check if data contains the following invalid characters: ~ + [ ] \ @ ^ { } % " * < ` = ! > ; ? $
-    if field in ('inmate_address', 'processing_numbers', 'charges', 'current_status'):
-      invalidCharacters = ['~', '+', '[', '\\', '@', '^', '{', '%', '"', '*', '<', '`', '}', '=', ']', '!', '>', ';', '?', '$']
-      if any(char in data for char in invalidCharacters):
-        print_message(row, field, data, 'not include special characters')
-        error_status = False
-
     # SEVERITY
     # Check if data is one of misdemeanor, felony, felony&misdemeanor
     if field == 'severity':
@@ -129,22 +109,52 @@ def validate_data(row, field, data, county):
         print_message(row, field, data, 'be YYYY-MM-DD')
         error_status = False
 
+    # BOOKING_TIMESTAMP, RELEASE_TIMESTAMP
+    # Check if data is in 'YYYY-MM-DD hh:mm:ss EST' or 'YYYY-MM-DD' format (some counties don't provide time)
+    if field in ('booking_timestamp', 'release_timestamp'):
+      if not re.match(r'(^[1-2]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])\s([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\sEST|^[1-2]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]))$', data):
+        print_message(row, field, data, 'be YYYY-MM-DD hh:mm:ss EST')   
+        error_status = False
+
+    # INMATE_ID, AGENCY, FACILITY
+    # Check if data contains letters, numbers, spaces only
+    if field in ('inmate_id', 'agency', 'facility'):
+      if not re.match(r'^[A-z0-9 ]+$', data):
+        print_message(row, field, data, 'contain letters and numbers only')
+        error_status = False
+
+    # INMATE_ADDRESS, PROCESSING_NUMBERS, CHARGES, CURRENT_STATUS
+    # Check if data contains the following invalid characters: ~ + [ ] \ @ ^ { } % " * ` = ! ; ? $
+    # (Will have to adjust character set according to tests)
+    if field in ('inmate_address', 'processing_numbers', 'charges', 'current_status'):
+      invalidCharacters = ['~', '+', '[', '\\', '@', '^', '{', '%', '"', '*', '`', '}', '=', ']', '!', ';', '?', '$']
+      if any(char in data for char in invalidCharacters):
+        print_message(row, field, data, 'not contain the following invalid characters: ~ + [ ] \ @ ^ { } % " * ` = ! ; ? $')
+        error_status = False
+
   # Return error status of current file
   return error_status 
 
 
 def validate_file(file):
-    print('---------------------------------------------------------------------------------------')
-    print('File: ' + file)
-    print('---------------------------------------------------------------------------------------')
+    log_print('='*80)
+    log_print_cyan('File: ' + file)
 
-    # For logging: To keep track of file validity
+    # Reference for order of field names
+    fieldnames_reference = ['county_name', 'timestamp', 'url', 'inmate_id', 'inmate_lastname', 'inmate_firstname', 'inmate_middlename', 'inmate_sex', 'inmate_race', 'inmate_age', 'inmate_dob', 'inmate_address', 'booking_timestamp', 'release_timestamp', 'processing_numbers', 'agency', 'facility', 'charges', 'severity', 'bond_amount', 'current_status', 'court_dates', 'days_jailed', 'other', 'notes']
+
+    # To keep track of file validity
     passedValidation = True
 
     with open('./../data/' + file, 'r') as f:
 
       reader = csv.DictReader(f)
+      
+      header = reader.fieldnames
 
+      if header != fieldnames_reference:
+        log_print('Field names do not match the required format. Order should be:\n{}'.format(('\n').join(fieldnames_reference)))
+        # return
       # Get county of current file from file name
       county = file.split('_')[0]
 
@@ -166,4 +176,4 @@ def validate_file(file):
     
     # If passedValidation is still True after validation check, print success message
     if passedValidation:
-      print('This file passed validation check.')
+      log_print_green('Passed validation check.')
