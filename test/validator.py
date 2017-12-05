@@ -10,11 +10,11 @@ def print_message(row, field, incorrect, correct):
 # If both charges and severity are not empty, check if count is equal
 def check_charges_and_severity_count(row, charges, severity):
   if charges != '' and severity != '':
-    if '|' in charges:
+    if '|' in charges or '|' in severity:
       try:
         assert len(charges.split('|')) == len(severity.split('|'))
       except AssertionError:
-        log_print("Row " + row + " [charges & severity]: charges and severity should be the same count")
+        log_print_red("Row " + row + " [charges & severity]: charges and severity should be the same count")
 
 def validate_data(row, field, data, county):
   
