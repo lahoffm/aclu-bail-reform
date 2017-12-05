@@ -113,7 +113,7 @@ def validate_data(row, field, data, county):
     # Check if data is in 'YYYY-MM-DD hh:mm:ss EST' or 'YYYY-MM-DD' format (some counties don't provide time)
     if field in ('booking_timestamp', 'release_timestamp'):
       if not re.match(r'(^[1-2]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])\s([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\sEST|^[1-2]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]))$', data):
-        print_message(row, field, data, 'be YYYY-MM-DD hh:mm:ss EST')   
+        print_message(row, field, data, 'be YYYY-MM-DD hh:mm:ss EST or YYYY-MM-DD if no time is provided')   
         error_status = False
 
     # INMATE_ID, AGENCY, FACILITY
