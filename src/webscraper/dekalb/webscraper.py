@@ -6,6 +6,7 @@ from datetime import datetime
 from nameparser import HumanName
 import req_data as req
 import helpers_index as helpers
+import time
 
 try:
   command = sys.argv[1]
@@ -65,6 +66,8 @@ inmate_data = list(search_results['searchResult']['hits'])
 if len(inmate_data) == 0:
   print('No records found.')
   sys.exit()
+
+print(len(inmate_data));
 
 with open('./../../../data/dekalb_' + label + '.csv', 'w', newline='') as new_file:
 
@@ -132,6 +135,8 @@ with open('./../../../data/dekalb_' + label + '.csv', 'w', newline='') as new_fi
       print('Progress: ' + str(progress_count) + '/' + str(num_records), end='\r')
     else:
       print('Progress: ' + str(progress_count), end='\r')
+
+    # time.sleep(3)
 
 print('Scrape complete!           ')
 print('Total scraped: ' + str(progress_count) + ' record(s)')
