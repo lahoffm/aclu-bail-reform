@@ -25,6 +25,7 @@ with conn: # conn.commit() is called if next statements execute successfully
             county_name         TEXT NOT NULL,
             booking_timestamp   TEXT NOT NULL,
             release_timestamp   TEXT,
+			on_roster			INTEGER,
             known_misdemeanor   INTEGER NOT NULL
         );
     """)

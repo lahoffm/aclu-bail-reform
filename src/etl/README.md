@@ -16,8 +16,9 @@ booking_id | Primary key
 booking_id_string | Concatenated CSV fields to make unique identifiers for each booking, for searching if a booking already exists in database. For example, `inmate_lastname` + `inmate_address` + `booking_timestamp`. The concatenated fields are different for each county!
 county_name | Same as CSV
 booking_timestamp | Same as CSV
-release_timestamp | Same as CSV - only for known releases, not if inmate just dropped off roster one day
-known_misdemeanor | **`1`** if all charges' severity is `misdemeanor`. **`0`** if at least one charge's severity is unknown, i.e. blank in CSV. Note felonies are deliberately excluded from minimal database.
+release_timestamp | Same as CSV - both for known releases and if inmate just dropped off roster one day.
+on_roster | **`1`** if inmate was on roster as of the most recently scraped CSV, else **`0`** or `NULL`. *Only used for counties where we must guess release dates based on when they dropped off roster. For other counties it's* `NULL`
+known_misdemeanor | **`1`** if all charges' severity is `misdemeanor`. **`0`** if at least one charge's severity is unknown, i.e. blank in CSV. *Note felonies are deliberately excluded from minimal database.*
 
 ## "Full Database" table specification
 All timestamps are in [Postgres timestamp format](https://www.postgresql.org/docs/9.1/static/datatype-datetime.html): `'2004-10-19 10:23:54 EST'`
