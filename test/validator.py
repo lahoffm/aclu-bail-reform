@@ -124,10 +124,10 @@ def validate_data(row, field, data, county):
         error_status = False
 
     # INMATE_ADDRESS, PROCESSING_NUMBERS, CHARGES, CURRENT_STATUS
-    # Check if data contains the following invalid characters: ~ + [ ] \ @ ^ { } % " * ` = ! ; ? $
+    # Check if data contains the following invalid characters: ~ + [ ] \ @ ^ { } % " * ` = ! ? $
     # (Will have to adjust character set according to tests)
     if field in ('inmate_address', 'processing_numbers', 'charges', 'current_status'):
-      invalidCharacters = ['~', '+', '[', '\\', '@', '^', '{', '%', '"', '*', '`', '}', '=', ']', '!', ';', '?', '$']
+      invalidCharacters = ['~', '+', '[', '\\', '@', '^', '{', '%', '"', '*', '`', '}', '=', ']', '!', '?', '$']
       if any(char in data for char in invalidCharacters):
         print_message(row, field, data, 'not contain the following invalid characters: ~ + [ ] \ @ ^ { } % " * ` = ! ; ? $')
         error_status = False
@@ -136,7 +136,7 @@ def validate_data(row, field, data, county):
   return error_status 
 
 
-def validate_file(file):
+def validate_file(directory, file):
     log_print('='*80)
     log_print_cyan('File: ' + file)
 
@@ -146,7 +146,7 @@ def validate_file(file):
     # To keep track of file validity
     passedValidation = True
 
-    with open('./../data/' + file, 'r') as f:
+    with open(directory + '/' + file, 'r') as f:
 
       reader = csv.DictReader(f)
       

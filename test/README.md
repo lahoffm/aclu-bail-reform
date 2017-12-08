@@ -16,7 +16,7 @@ pip install -r requirements.txt
 python csv_validator.py
 ```
 
-- Validates all files ending in *.csv* in `data` folder
+- Validates all files ending in *.csv* in `data/to_test` folder
 - Outputs results to terminal and a log file in `logs` folder
 - Overwrites same day log file
 - For validation specifications, read comments in `validator.py`

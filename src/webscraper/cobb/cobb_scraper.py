@@ -1,18 +1,35 @@
 import requests
 import re
 import csv
-import pandas as pd
 import numpy as np
+import pandas as pd
 from bs4 import BeautifulSoup as bs
 from datetime import datetime, timedelta
 import math
-from nameparser import HumanName
+import sys
+
+
+# Command line arg required
+# 1 = scrape yesterday's bookings
+# 2 = scrape day before yesterday's bookings
+# 3 = scrape bookings 3 days ago
+# 30 = max time in past Cobb lets you scrape
+try:
+    days_back = int(sys.argv[1])
+except IndexError:
+    print('Please enter a valid command (1, 2, ..., 30)')
+    sys.exit()
+if days_back not in range(1,31):
+    print('Please enter a valid command (1, 2, ..., 30)')
+    sys.exit()
 
 the_cols=['timestamp','url','inmate_id','inmate_firstname','inmate_lastname','inmate_middlename','inmate_sex','inmate_race','inmate_age','inmate_dob','inmate_address','booking_timestamp','processing_numbers','agency','facility','charges','severity','court_dates','days_jailed','bond_amount','current_status','release_timestamp','other','notes']
 ########### Fix processing numbers and bond amount
 'http://inmate-search.cobbsheriff.org/inmate/enter_name.shtm'
 stamp=str(datetime.now()).split(" ")
-d = str(datetime.today() - timedelta(days=3)).split(" ")[0]
+
+d = str(datetime.today() - timedelta(days=days_back)).split(" ")[0]
+d_end = str(datetime.today() - timedelta(days=days_back-1)).split(" ")[0]
 full_time=stamp[1]
 stamp=stamp[0]
 full_time=full_time.split(".")[0]
@@ -33,7 +50,7 @@ charges_row={'county_name':'cobb','timestamp':'n/a','url':'n/a','inmate_id':'n/a
 inmate_row={'county_name':'cobb','timestamp':'n/a','url':'n/a','inmate_id':'n/a','inmate_firstname':'n/a','inmate_lastname':'n/a','inmate_middlename':'n/a','inmate_sex':'n/a','inmate_race':'n/a','inmate_age':'n/a','inmate_dob':'n/a','inmate_address':'n/a'}
 charges_pd=pd.DataFrame('N/A',index=[],columns=charges_row.keys())
 inmate_pd=pd.DataFrame('N/A',index=[],columns=inmate_row.keys())
-date={'start_month':d.split("-")[1],'start_day':d.split("-")[2],'start_year':d.split("-")[0],'end_month':stamp.split("-")[1],'end_day':stamp.split("-")[2],'end_year':stamp.split("-")[0]}
+date={'start_month':d.split("-")[1],'start_day':d.split("-")[2],'start_year':d.split("-")[0],'end_month':d_end.split("-")[1],'end_day':d_end.split("-")[2],'end_year':d_end.split("-")[0]}
 'http://inmate-search.cobbsheriff.org/JMS_Admit_Review.asp?BD=9%2F27%2F2017&CCLASS=&ED=9%2F28%2F2017&SK='
 url_site='http://inmate-search.cobbsheriff.org/JMS_Admit_Review.asp?BD='+date['start_month']+'%2F'+date['start_day']+'%2F'+date['start_year']+'&CCLASS=&ED='+date['end_month']+'%2F'+date['end_day']+'%2F'+date['end_year']+'&SK='
 inmate_dets='http://inmate-search.cobbsheriff.org/'
@@ -104,17 +121,21 @@ for num,i in enumerate(inmates_info.keys()):
                 inmate_row_i['notes']+=' Error with column '+k+': '+str(e)+' | '
         if k=='inmate_lastname':
             try:
-                inmate_row_i[k]=name = HumanName(subset_main_df.iloc[0]['Inmate Name']).last
+                inmate_row_i[k] = subset_main_df.iloc[0]['Inmate Name'].split(' ')[0]
             except Exception as e:
                 inmate_row_i['notes']+=' Error with column '+k+': '+str(e)+' | '
         if k=='inmate_firstname':
             try:
-                inmate_row_i[k]=HumanName(subset_main_df.iloc[0]['Inmate Name']).first
+                inmate_row_i[k] = subset_main_df.iloc[0]['Inmate Name'].split(' ')[1]
             except Exception as e:
                 inmate_row_i['notes']+=' Error with column '+k+': '+str(e)+' | '
         if k=='inmate_middlename':
             try:
-                inmate_row_i[k]=HumanName(subset_main_df.iloc[0]['Inmate Name']).middle
+                split_name = subset_main_df.iloc[0]['Inmate Name'].split(' ')
+                if len(split_name)>2:
+                    inmate_row_i[k] = ' '.join(split_name[2:])
+                else:
+                    inmate_row_i[k] = ''
             except Exception as e:
                 inmate_row_i['notes']+=' Error with column '+k+': '+str(e)+' | '
         if k=='inmate_sex':
@@ -146,7 +167,7 @@ for num,i in enumerate(inmates_info.keys()):
         if k=='booking_timestamp':
             try:
                 date_book=str(re.sub(u'\xa0',' ',inmates_info[i][0].loc[3][2]))
-                inmate_row_i[k]=date_book.split(" ")[0].split("/")[2]+'-'+date_book.split(" ")[0].split("/")[0]+'-'+date_book.split(" ")[0].split("/")[1]+' '+date_book.split(" ")[1]+':00 EST'
+                inmate_row_i[k] = str(datetime.strptime(date_book, '%m/%d/%Y %H:%M')) + ' EST'
             except Exception as e:
                 inmate_row_i['notes']+=' Error with column '+k+': '+str(e)+' | '
         if k=='processing_numbers':
@@ -155,7 +176,10 @@ for num,i in enumerate(inmates_info.keys()):
                 for p in range(len(inmates_info[i])):
                     if inmates_info[i][p].loc[0][0]=='Charges':
                         x=p+1
-                charg+=inmates_info[i][x].loc[1][1]
+                case_num = inmates_info[i][x].loc[1][1]
+                if not isinstance(case_num, str):
+                    case_num = ''
+                charg+=case_num
                 inmate_row_i[k]=charg
             except Exception as e:
                 inmate_row_i['notes']+=' Error with column '+k+': '+str(e)+' | '
@@ -175,51 +199,57 @@ for num,i in enumerate(inmates_info.keys()):
                 inmate_row_i['notes']+=' Error with column '+k+': '+str(e)+' | '
         if k=='charges':
             try:
-                charg_nams=[v for v in list(subset_main_df.iloc[1:]['Inmate Name'])]
-                inmate_row_i[k]=" | ".join(charg_nams)
+                charge_names = [v for v in list(subset_main_df.iloc[1:]['Inmate Name'])] # all charges from main page
+                inmate_row_i[k] = " | ".join(charge_names)
             except Exception as e:
                 inmate_row_i['notes']+=' Error with column '+k+': '+str(e)+' | '
         if k=='severity':
             try:
-                for p in range(len(inmates_info[i])):
-                    if inmates_info[i][p].loc[0][0]=='Charges':
-                        x=p+1
-                charg=''
-                inmates_info[i][x].loc[1][1]
-                for z in range(len(inmates_info[i][x])):
-                    if inmates_info[i][x].loc[z][2]=='Description':
-                        z+=1
-                        break                
-                charg_num=len(subset_main_df)-1
-                if (type(inmates_info[i][x].loc[z+1][2])==type(1.01) and inmates_info[i][x].loc[z+2][0]=='Bond Amount') or inmates_info[i][x].loc[z+1][0]=='Bond Amount':
-                    remain=0
-                    for p in range(charg_num):
-                        if remain>=charg_num:
-                            break
-                        for z in range(len(inmates_info[i][x+p])):
-                            if inmates_info[i][x+p].loc[z][2]=='Description':
-                                z+=1
-                                break    
-                        remain+=1
-                        for a in range(len(inmates_info[i][x+p])-(z+1)):
-                            if type(inmates_info[i][x+p].loc[z+a][3])==type(float(0)) or 'BondingInfo'==inmates_info[i][x+p].loc[z+a][3]:
-                                continue
-                            elif type(inmates_info[i][x+p].loc[z+a][3])!=type(float(0)):
-                                if 'no classification' in inmates_info[i][x+p].loc[z+a][3].lower() or 'civil' in inmates_info[i][x+p].loc[z+a][3].lower() or 'violation' in inmates_info[i][x+p].loc[z+a][3].lower() or 'petty' in inmates_info[i][x+p].loc[z+a][3].lower() or 'misdemeanor' in inmates_info[i][x+p].loc[z+a][3].lower() or 'felony' in inmates_info[i][x+p].loc[z+a][3].lower():
-                                    charg_ind=str(inmates_info[i][x+p].loc[z+a][3])
-                                    charg+=charg_ind+' | '
-                                    remain+=1
-                        
-                else:
-                    for p in range(len(inmates_info[i][x])-(z+1)):
-                        if type(inmates_info[i][x].loc[z+p][3])==type(float(0)) or 'BondingInfo'==inmates_info[i][x].loc[z+p][3]:
-                            continue
-                        elif type(inmates_info[i][x].loc[z+p][3])!=type(float(0)):
-                            if 'no classification' in inmates_info[i][x].loc[z+p][3].lower() or 'civil' in inmates_info[i][x].loc[z+p][3].lower() or 'violation' in inmates_info[i][x].loc[z+p][3].lower() or 'petty' in inmates_info[i][x].loc[z+p][3].lower() or 'misdemeanor' in inmates_info[i][x].loc[z+p][3].lower() or 'felony' in inmates_info[i][x].loc[z+p][3].lower():
-                                charg_ind=str(inmates_info[i][x].loc[z+p][3])
-                                charg+=charg_ind+' | '
-                charg=charg[0:-2]
-                inmate_row_i[k]=charg
+                inmate_row_i[k] = ''
+                first_severity = True
+                charge_names = [v for v in list(subset_main_df.iloc[1:]['Inmate Name'])]  # all charges from main page for current inmate
+                
+                # Look for strings in subpage tables matching the charge strings we got from the main page for the current inmate
+                # The subpage charge string is split into 2 cells, code section & description.
+                # Crucially, whether it's a felony or misdemeanor is always in the cell to the right of the charge.
+                # It's OK if there's more than one of the same charge since it will still be in same category (misdemeanor/felony)
+                for charge in charge_names:
+                    table_found = False
+                    for table in inmates_info[i]:
+                       row, col = np.where(table.applymap(lambda cell: charge.startswith(str(cell)))) # location in table containing start of charge
+                       if len(row)==0: # charge not found in table
+                           continue
+                       else:
+                           for r, c in zip(row, col): # in case same start of charge happens 2x in same table
+                               if not charge.endswith(str(table.iloc[r,c+1])): # 2nd part of charge must match too
+                                   continue # next row in this table that has the correct start of charge
+                               else: # we have a matching charge
+                                   break
+                           if not charge.endswith(str(table.iloc[r,c+1])):
+                               continue # next table
+                           severity = str(table.iloc[r,c+2]).lower()\
+                               .replace(' unindicted','')\
+                               .replace(' indicted','')\
+                               .replace('civil','')\
+                               .replace('high & aggravated ','')\
+                               .replace('no classification','')\
+                               .replace('ordinance','')\
+                               .replace('pardons & parole','')\
+                               .replace('nan','')
+                           if severity != 'misdemeanor' and severity != 'felony' and severity !='':
+                               inmate_row_i[k] = ''
+                               raise ValueError('Unexpected format of severity "' + severity + '", originating from website severity "' + table.iloc[row,col+2] + '"')
+                           table_found = True
+                           break
+                    if not table_found:
+                        inmate_row_i[k] = ''
+                        raise ValueError('Main site charge "' + charge + '" not found in subpage. Not storing severity for any charges.')
+                    if first_severity:
+                        inmate_row_i[k] = severity
+                        first_severity = False
+                    else:
+                        inmate_row_i[k] = inmate_row_i[k] + ' | ' + severity
+
             except Exception as e:
                 inmate_row_i['notes']+=' Error with column '+k+': '+str(e)+' | '
         if k=='court_dates':
@@ -266,10 +296,10 @@ for num,i in enumerate(inmates_info.keys()):
         if k=='release_timestamp':
             try:
                 if type(subset_main_df.iloc[0]['Released'])==type(float(5)):
-                    inmate_row_i[k]=' '
+                    inmate_row_i[k]=''
                 else:
-                    date_book=str(re.sub(u'\xa0',' ',subset_main_df.iloc[0]['Released']))
-                    inmate_row_i[k]=date_book.split(" ")[0].split("/")[2]+'-'+date_book.split(" ")[0].split("/")[0]+'-'+date_book.split(" ")[0].split("/")[1]+' '+date_book.split(" ")[1]+':00 EST'
+                    date_release=str(re.sub(u'\xa0',' ',subset_main_df.iloc[0]['Released']))
+                    inmate_row_i[k]=str(datetime.strptime(date_release, '%m/%d/%Y %H:%M')) + ' EST'
             except Exception as e:
                 inmate_row_i['notes']+=' Error with column '+k+': '+str(e)+' | '
         if k=='other':
@@ -278,11 +308,11 @@ for num,i in enumerate(inmates_info.keys()):
             except Exception as e:
                 inmate_row_i['notes']+=' Error with column '+k+': '+str(e)+' | '
         if k=='notes':
-            inmate_row_i[k]+="If the inmate has been released the location will only show 'released', court dates or current status were not given for this county, "
+            inmate_row_i[k]+=""
     inmates.append(inmate_row_i)
 
 cor_col=['county_name', 'timestamp', 'url', 'inmate_id', 'inmate_lastname', 'inmate_firstname', 'inmate_middlename', 'inmate_sex', 'inmate_race', 'inmate_age', 'inmate_dob', 'inmate_address', 'booking_timestamp', 'release_timestamp', 'processing_numbers', 'agency', 'facility', 'charges', 'severity', 'bond_amount', 'current_status', 'court_dates', 'days_jailed', 'other', 'notes']
-with open(r'..\..\..\data\cobb_'+stamp+'_'+full_time+'.csv', 'w') as csvfile:
+with open(r'../../../data/cobb_bookings-from-' + d + '_' + stamp + '_' + full_time + '.csv', 'w') as csvfile:
     spamwriter = csv.writer(csvfile, lineterminator='\n')
     spamwriter.writerow(cor_col)
     for i in inmates:

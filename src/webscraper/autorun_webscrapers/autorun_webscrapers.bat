@@ -13,7 +13,11 @@ call activate python_363
 
 REM Counties cannot have spaces, and must match name of the folder containing
 REM the main scrape program for that county.
-set counties= athens-clarke bibb\jailCrawler dekalb glynn muscogee
+set counties= athens-clarke bibb\jailCrawler cobb dekalb glynn muscogee
+
+REM we want Cobb to scrape 30 days ago because that gives us the most complete
+REM info about a booking, Cobb doesn't allow for more than 30 days in past.
+REM if more recent dates are desired you can run python cobb_scraper_30days.py
 
 REM We want Dekalb to scrape yesterday's records because
 REM sometimes today's records aren't updated until tomorrow.
@@ -38,7 +42,10 @@ for %%i in (%counties%) do (
     )
     IF "%%i"=="bibb\jailCrawler" (
         set scrape_cmd= scrapy crawl bibb
-    )   
+    )  
+    IF "%%i"=="cobb" (
+        set scrape_cmd= python cobb_scraper.py 30
+    ) 
     IF "%%i"=="dekalb" (
         set scrape_cmd= python webscraper.py custom %yesterday%
     )
