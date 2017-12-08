@@ -39,7 +39,4 @@ The 15 priority areas are
 * Whitfield
 
 ## How to run
-* *Initial code & documentation under construction*
-* Requires **Python 3.6**
-* ETL code will require PostgreSQL server to be running
-* PostgreSQL database layout TBD
+* Requires **Python 3.6.3**
