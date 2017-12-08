@@ -9,8 +9,8 @@ with open(r'../../../data/cobb_bookings-from-' + d + '_' + stamp + '_' + full_ti
 ```
 
 # To run
-`python cobb_scraper.py 1` to get yesterday's bookings
-`python cobb_scraper.py 5` to get bookings from 5 days ago
-`python cobb_scraper.py 30` 30 days in past is maximum Cobb lets you scrape
-
+`python cobb_scraper.py 1` -> to get yesterday's bookings  
+`python cobb_scraper.py 5` -> to get bookings from 5 days ago  
+`python cobb_scraper.py 30` -> 30 days in past is maximum Cobb lets you scrape  
+  
 `python cobb_scraper_30days.py` to get all bookings from 30 days ago up to yesterday (makes 30 CSV files). **May not work on Mac**
