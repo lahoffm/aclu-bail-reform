@@ -42,7 +42,7 @@ fieldnames = ['county_name',
               'severity',
               'bond_amount',
               'current_status',
-              'court_date',
+              'court_dates',
               'days_jailed',
               'other',
               'notes'
@@ -63,7 +63,7 @@ while True:
         par_res['url'] = None
         par_res['inmate_age'] = None
         par_res['inmate_dob'] = None
-        par_res['court_date'] = None
+        par_res['court_dates'] = None
         par_res['days_jailed'] = None
         par_res['notes'] = ''
         par_res['county_name'] = 'fulton'
