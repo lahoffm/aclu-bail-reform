@@ -47,14 +47,14 @@ def validate_data(row, field, data, county):
     # INMATE_LASTNAME, INMATE_FIRSTNAME, INMATE_MIDDLENAME
     # Check if data contains letters, periods, commas, spaces only (punctuation for titles (e.g. Jr.) and apostrophe names (e.g. O'Brien))
     if field in ('inmate_lastname', 'inmate_firstname', 'inmate_middlename'):
-      if not re.match(r'^[A-z.,\-\' ]+$', data):
+      if not re.match(r'^[A-z.,\-\'" ]+$', data):
         print_message(row, field, data, 'contain letters, period, comma and apostrophe only')
         error_status = False
 
     # INMATE_SEX
     # Check if data is m or f
     if field == 'inmate_sex':
-      if not re.match(r'^(m|f)$', data):
+      if not re.match(r'^(m|f)$', data, re.IGNORECASE):
         print_message(row, field, data, 'be m or f')
         error_status = False
 
@@ -116,18 +116,18 @@ def validate_data(row, field, data, county):
         print_message(row, field, data, 'be YYYY-MM-DD hh:mm:ss EST or YYYY-MM-DD if no time is provided')   
         error_status = False
 
-    # INMATE_ID, AGENCY, FACILITY
-    # Check if data contains letters, numbers, spaces only
-    if field in ('inmate_id', 'agency', 'facility'):
-      if not re.match(r'^[A-z0-9 ]+$', data):
-        print_message(row, field, data, 'contain letters and numbers only')
+    # INMATE_ID
+    # Check if data contains letters, numbers, apostrophe and spaces only
+    if field in ('inmate_id'):
+      if not re.match(r'^[A-z0-9\' ]+$', data):
+        print_message(row, field, data, 'contain letters, numbers, apostrophe and spaces only')
         error_status = False
 
-    # INMATE_ADDRESS, PROCESSING_NUMBERS, CHARGES, CURRENT_STATUS
-    # Check if data contains the following invalid characters: ~ + [ ] \ @ ^ { } % " * ` = ! ? $
+    # INMATE_ADDRESS, PROCESSING_NUMBERS, AGENCY, FACILITY, CHARGES, CURRENT_STATUS
+    # Check if data contains the following invalid characters: ~ + \ @ ^ { } % " ` = ! ?
     # (Will have to adjust character set according to tests)
-    if field in ('inmate_address', 'processing_numbers', 'charges', 'current_status'):
-      invalidCharacters = ['~', '+', '[', '\\', '@', '^', '{', '%', '"', '*', '`', '}', '=', ']', '!', '?', '$']
+    if field in ('inmate_address', 'processing_numbers', 'agency', 'facility',  'charges', 'current_status'):
+      invalidCharacters = ['~', '+', '\\', '@', '^', '{', '%', '"', '`', '}', '=', '!', '?']
       if any(char in data for char in invalidCharacters):
         print_message(row, field, data, 'not contain the following invalid characters: ~ + [ ] \ @ ^ { } % " * ` = ! ; ? $')
         error_status = False
