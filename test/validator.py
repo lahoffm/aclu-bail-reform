@@ -62,7 +62,7 @@ def validate_data(row, field, data, county):
     # Check if data is one of black, white, hispanic, asian, middle-easter, native-american, pacific-islander, multiracial, other
     if field == 'inmate_race':
       if not re.match(r'^(black|white|hispanic|asian|middle-eastern|native-american|pacific-islander|multiracial|other)$', data, re.IGNORECASE):
-        print_message(row, field, data, 'black, white, hispanic, asian, middle-eastern, native-american, pacific-islander, multiracial, or other')
+        print_message(row, field, data, 'be black, white, hispanic, asian, middle-eastern, native-american, pacific-islander, multiracial, or other')
         error_status = False
 
     # INMATE_AGE
@@ -91,7 +91,7 @@ def validate_data(row, field, data, county):
     # BOND_AMOUNT
     # Check if floats in data is preceded by $
     if field == 'bond_amount':
-      if re.search(r'\d+\.\d{2}', data) and not re.search(r'\$\d+\.\d{2}', data):
+      if re.search(r'\d+(\.\d{2})?', data) and not re.search(r'\$\d+(\.\d{2})?', data):
         print_message(row, field, data, 'have $ before bond amount')
         error_status = False
 
@@ -124,10 +124,10 @@ def validate_data(row, field, data, county):
         error_status = False
 
     # INMATE_ADDRESS, PROCESSING_NUMBERS, AGENCY, FACILITY, CHARGES, CURRENT_STATUS
-    # Check if data contains the following invalid characters: ~ + \ @ ^ { } % " ` = ! ?
+    # Check if data contains the following invalid characters: ~ + \ @ ^ { } " ` = ! ?
     # (Will have to adjust character set according to tests)
     if field in ('inmate_address', 'processing_numbers', 'agency', 'facility',  'charges', 'current_status'):
-      invalidCharacters = ['~', '+', '\\', '@', '^', '{', '%', '"', '`', '}', '=', '!', '?']
+      invalidCharacters = ['~', '+', '\\', '@', '^', '{', '"', '`', '}', '=', '!', '?']
       if any(char in data for char in invalidCharacters):
         print_message(row, field, data, 'not contain the following invalid characters: ~ + [ ] \ @ ^ { } % " * ` = ! ; ? $')
         error_status = False
