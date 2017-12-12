@@ -15,11 +15,14 @@ import os
 import glob
 import pandas as pd
 from datetime import datetime
+import sqlite3
+
+conn = sqlite3.connect('../../data/databases/min_booking_database.db')
 
 # ETL configs
 data_folder = '../../data' # all CSVs should be in here
-counties =      ['athens-clarke',                'bibb', 'dekalb', 'glynn', 'muscogee'] # counties to add to database
-start_strings = ['athens-clarke_booking-report', 'bibb', 'dekalb', 'glynn', 'muscogee_release'] # string the CSV filename should start with
+counties =      ['athens-clarke',                'bibb', 'dekalb', 'glynn', 'muscogee', 'fulton'] # counties to add to database
+start_strings = ['athens-clarke_booking-report', 'bibb', 'dekalb', 'glynn', 'muscogee_release', 'fulton'] # string the CSV filename should start with
 sqlite_file = '../../data/databases/booking_database.db' # should already be initialized
 
 os.chdir(data_folder)
@@ -86,4 +89,21 @@ for county, start_string in zip(counties, start_strings):
             booking_id_string = booking_id_string[0].str.cat(booking_id_string[1:], sep=' | ')
         df['booking_id_string'] = booking_id_string
     
+        insert_statement = '''
+                INSERT INTO bookings (booking_id_string, county_name, booking_timestamp, release_timestamp, on_roster, known_misdemeanor) 
+                VALUES (?, ?, ?, ?, ?, ?)
+            '''
+
+        for i in range(df.shape[0]):
+            row = df.iloc[i]
+            known_misdemeanor = df['known_misdemeanor'][i]
+            on_roster = 0
+
+            try:
+                conn.execute(insert_statement, (row['booking_id_string'], row['county_name'], row['booking_timestamp'], row['release_timestamp'], on_roster, known_misdemeanor))
+            except sqlite3.IntegrityError:
+                print("This was added before")
+                continue
+    conn.commit()
 print('ETL completed successfully')
+conn.close()
