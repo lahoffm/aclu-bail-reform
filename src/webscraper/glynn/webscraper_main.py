@@ -108,10 +108,17 @@ if num_inmates != total_inmates: # Expecting this to be rare.
          str(total_inmates) + "). This probably happened because one or more booking dates weren't filled in." +
          ' As a result, at least one inmate will mistakenly be assigned the charges that should go to another inmate.')
 
-# Put each charge on a single line - comments earlier explain why we have to do it this way.
+# Next couple dozen lines put each charge on a single line - comments earlier explain why we have to do it this way.
 j = 0
 charges_oneline = charges.str.replace('\r', ' ')
 df_pdf['charges'].fillna('', inplace=True) # to avoid error calling 'replace' on a NaN charge below
+
+# Fixes a bug where current_status = 'Own Recognizanc' and charges = 'e WHATEVER CHARGE IT IS'
+# The bug causes discrepancy between df_pdf's charges and "firstline" in the loop below
+# Easier to fix this way than figuring out how much to move the column boundary to the right in tabula
+df_pdf.loc[df_pdf['current_status']=='Own Recognizanc','charges'] = df_pdf.loc[df_pdf['current_status']=='Own Recognizanc','charges'].str.slice(2)
+df_pdf.loc[df_pdf['current_status']=='Own Recognizanc','current_status'] = 'Own Recognizance'
+
 for i in range(len(charges)):
     if '\r' in charges[i]: # two-line charge
         firstline = charges[i][0:charges[i].find('\r')]
@@ -263,9 +270,9 @@ except ValueError as e:
     raise ValueError('Unable to convert inmate age to numeric')
 df['inmate_age'] = age_race_sex.iloc[:,0]
 inmate_race = age_race_sex.iloc[:,1]
-assert np.isin(inmate_race.unique(), np.array(['B','W'])).all(),\
+assert np.isin(inmate_race.unique(), np.array(['B','W','U'])).all(),\
        "One or more of these races not converted to standard format: " + str(inmate_race.unique())
-df['inmate_race'] = inmate_race.str.replace('B', 'black').str.replace('W', 'white')
+df['inmate_race'] = inmate_race.str.replace('B', 'black').str.replace('W', 'white').str.replace('U','') # U is unknown race
 inmate_sex = age_race_sex.iloc[:,3].str.lower()
 assert np.isin(inmate_sex.unique(), np.array(['m','f'])).all(), 'Invalid sex format'
 df['inmate_sex'] = inmate_sex

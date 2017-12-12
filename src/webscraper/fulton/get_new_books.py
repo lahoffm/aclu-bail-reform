@@ -6,6 +6,12 @@ import re
 from datetime import datetime
 from functools import reduce
 
+# For database:
+# If race is 'Native Hawaiian or Other Pacific Islander', change to 'pacific-islander'
+# If race is 'Indian', change to 'asian'
+def checkRace(race):
+    return 'pacific-islander' if race == 'Native Hawaiian or Other Pacific Islander' else 'asian' if race == 'Indian' else race
+
 current_record = int( open('last_record.txt','r').read() ) + 1
 
 formatted_time = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
@@ -42,7 +48,7 @@ fieldnames = ['county_name',
               'severity',
               'bond_amount',
               'current_status',
-              'court_date',
+              'court_dates',
               'days_jailed',
               'other',
               'notes'
@@ -63,7 +69,7 @@ while True:
         par_res['url'] = None
         par_res['inmate_age'] = None
         par_res['inmate_dob'] = None
-        par_res['court_date'] = None
+        par_res['court_dates'] = None
         par_res['days_jailed'] = None
         par_res['notes'] = ''
         par_res['county_name'] = 'fulton'
@@ -77,7 +83,7 @@ while True:
         except IndexError:
             par_res['inmate_middlename'] = None
         par_res['inmate_sex'] = cur_res[2][4].split('\xa0')[2][0]
-        par_res['inmate_race'] = cur_res[2][4].split('\xa0')[0]
+        par_res['inmate_race'] = checkRace(cur_res[2][4].split('\xa0')[0])
         # not totally sure if this is inmate address or address of the crime
         par_res['inmate_address'] = cur_res[2][14]
         # not sure what SO number is
