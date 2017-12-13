@@ -104,6 +104,7 @@ for county, start_string in zip(counties, start_strings):
             except sqlite3.IntegrityError:
                 print("This was added before")
                 continue
+
     conn.commit()
 print('ETL completed successfully')
 conn.close()
