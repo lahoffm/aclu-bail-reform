@@ -17,6 +17,59 @@ import pandas as pd
 from datetime import datetime
 import sqlite3
 
+# Insert data into bookings database
+def insert_booking(booking):
+    conn.execute('''
+        INSERT INTO bookings (booking_id_string, county_name, booking_timestamp, release_timestamp, known_misdemeanor)
+        VALUES (?, ?, ?, ?, ?);
+    ''',
+    [
+        booking['booking_id_string'],
+        booking['county_name'],
+        booking['booking_timestamp'],
+        booking['release_timestamp'],
+        booking['known_misdemeanor']
+    ])
+
+# Update release_timestamp for non-Glynn bookings in database
+def update_rel_ts(bk_id_str, rel_ts):
+    conn.execute('''
+        UPDATE bookings SET release_timestamp = ?
+        WHERE booking_id_string = ?;
+    ''',
+    [rel_ts, bk_id_str])
+
+# Update release_timestamp for Glynn bookings in database
+def update_glynn_rel_ts(data, rel_ts):
+
+    recent_roster = list()
+
+    # Build list of bookings in current dataframe
+    for i in range(data.shape[0]):
+        row = data.iloc[i]
+        if row['county_name'] == 'glynn':
+            recent_roster.append(row['booking_id_string'])
+
+    # Get list of bookings from database
+    bookings_roster = list(map(lambda x:x[0], list(conn.execute('''
+        SELECT booking_id_string
+        FROM bookings
+        WHERE county_name = 'glynn';
+    '''))))
+
+    # Get bookings that exist in database but not in dataframe
+    dropped_inmates = list(set(bookings_roster) - set(recent_roster))
+
+    # Update release_timestamp for dropped inmates in database
+    for j in range(len(dropped_inmates)):
+        update_rel_ts(dropped_inmates[j], rel_ts)
+        conn.execute('''
+            UPDATE bookings SET release_timestamp = ?
+            WHERE booking_id_string = ? AND release_timestamp = '';
+        ''',
+        [rel_ts, dropped_inmates[j]])
+
+# Connect to SQLite Minimum Database
 conn = sqlite3.connect('../../data/databases/min_booking_database.db')
 
 # ETL configs
@@ -43,7 +96,6 @@ for county, start_string in zip(counties, start_strings):
     # Sort by timestamp so database always updated from earliest to most recent scrape
     fname_ts = list(zip(csv_county, timestamps))
     fname_ts = sorted(fname_ts, key=lambda x: x[1])
-    
     # Which fields form unique identifiers for each booking
     # Differences between counties remain despite putting CSVs in same format
     if county == 'athens-clarke':
@@ -56,14 +108,22 @@ for county, start_string in zip(counties, start_strings):
         booking_id_fields = ['booking_timestamp', 'inmate_lastname',  # Glynn has no ID field, have to combine other info
                              'inmate_firstname', 'inmate_middlename', # WARNING: if 2 guys with same name & race arrested on same day,
                              'inmate_sex', 'inmate_race']             # it looks like 1 booking. Hopefully this happens rarely.
+        temp_ts = fname_ts
     if county == 'muscogee':
         booking_id_fields = ['booking_timestamp', 'inmate_lastname',    # Muscogee has no ID field, have to combine other info
                              'inmate_firstname', 'inmate_middlename',   # WARNING: if 2 guys with same name & race & year of birth arrested on same day,
                              'inmate_sex', 'inmate_race', 'inmate_dob'] # it looks like 1 booking. Hopefully this happens rarely.   
     
-    for fname, ts in fname_ts:
-        print('   Loading ' + fname + ' into database')
+
+
+    for i in range(len(fname_ts)):
         
+        fname = fname_ts[i][0]
+        ts = fname_ts[i][1]
+        
+
+        print('   Loading ' + fname + ' into database')
+
         # Get dataframe
         if os.path.getsize(fname) == 0:
             print('        Empty file, skipping')
@@ -88,22 +148,26 @@ for county, start_string in zip(counties, start_strings):
             booking_id_string = [booking_id_string[column] for column in booking_id_string.columns]
             booking_id_string = booking_id_string[0].str.cat(booking_id_string[1:], sep=' | ')
         df['booking_id_string'] = booking_id_string
-    
-        insert_statement = '''
-                INSERT INTO bookings (booking_id_string, county_name, booking_timestamp, release_timestamp, on_roster, known_misdemeanor) 
-                VALUES (?, ?, ?, ?, ?, ?)
-            '''
 
-        for i in range(df.shape[0]):
-            row = df.iloc[i]
-            known_misdemeanor = df['known_misdemeanor'][i]
-            on_roster = 0
-
+        for j in range(df.shape[0]):
+            row = df.iloc[j]
             try:
-                conn.execute(insert_statement, (row['booking_id_string'], row['county_name'], row['booking_timestamp'], row['release_timestamp'], on_roster, known_misdemeanor))
+                # Insert all new bookings to database
+                insert_booking(row)
             except sqlite3.IntegrityError:
-                print("This was added before")
+                # If booking already exists, update release_timestamp
+                update_rel_ts(row['booking_id_string'], row['release_timestamp'])
                 continue
-    conn.commit()
+
+        # If current county is Glynn and there are more than one Glynn files,
+        # update Glynn bookings
+        if county == 'glynn' and i > 0: 
+            old_ts = fname_ts[i-1][1]
+            release_timestamp = old_ts + (ts - old_ts)/2
+            release_timestamp = release_timestamp.strftime('%Y-%m-%d %H:%M:%S EST')
+            update_glynn_rel_ts(df, release_timestamp)
+
+conn.commit()
+
 print('ETL completed successfully')
 conn.close()
