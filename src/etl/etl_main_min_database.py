@@ -28,7 +28,7 @@ def insert_booking(booking):
         booking['county_name'],
         booking['booking_timestamp'],
         booking['release_timestamp'],
-        booking['known_misdemeanor']
+        int(booking['known_misdemeanor'])
     ])
 
 # Update release_timestamp for non-Glynn bookings in database
@@ -62,7 +62,6 @@ def update_glynn_rel_ts(data, rel_ts):
 
     # Update release_timestamp for dropped inmates in database
     for j in range(len(dropped_inmates)):
-        update_rel_ts(dropped_inmates[j], rel_ts)
         conn.execute('''
             UPDATE bookings SET release_timestamp = ?
             WHERE booking_id_string = ? AND release_timestamp = '';
@@ -73,7 +72,7 @@ def update_glynn_rel_ts(data, rel_ts):
 conn = sqlite3.connect('../../data/databases/min_booking_database.db')
 
 # ETL configs
-data_folder = '../../data' # all CSVs should be in here
+data_folder = '../../data/athens_data' # all CSVs should be in here
 counties =      ['athens-clarke',                'bibb', 'dekalb', 'glynn', 'muscogee', 'fulton'] # counties to add to database
 start_strings = ['athens-clarke_booking-report', 'bibb', 'dekalb', 'glynn', 'muscogee_release', 'fulton'] # string the CSV filename should start with
 sqlite_file = '../../data/databases/booking_database.db' # should already be initialized
@@ -82,6 +81,7 @@ os.chdir(data_folder)
 print('In folder ' + os.getcwd())
 csv_files = glob.glob('*.csv')
 
+# For each county...
 for county, start_string in zip(counties, start_strings):
     print('Loading CSVs from ' + county + ' county')
     
@@ -115,7 +115,7 @@ for county, start_string in zip(counties, start_strings):
                              'inmate_sex', 'inmate_race', 'inmate_dob'] # it looks like 1 booking. Hopefully this happens rarely.   
     
 
-
+    # For each file in county...
     for i in range(len(fname_ts)):
         
         fname = fname_ts[i][0]
@@ -138,8 +138,13 @@ for county, start_string in zip(counties, start_strings):
         # Get rid of felonies
         df = df[~df['severity'].str.contains('felony')] 
         
+        # For Athens-Clarke county, if there are multiple release timestamps and all release timestamps are the same, release_timestamp is the first timestamp, else ''
+        # Release timestamps should be the same if # of ' | ' is 1 less than # of same timestamp occurrences
+        if county == 'athens-clarke':
+            df['release_timestamp'] = [(release_timestamp.split(' | ')[0] if (release_timestamp.count(' | ') - release_timestamp.count(release_timestamp.split(' | ')[0]) == -1) else '') for release_timestamp in df['release_timestamp']]
+
         # If severity is 'misdemeanor' for every single charge, known_misdemeanor is 1, else 0
-        # number of 'misdemeanor' should == # of '|' - 1
+        # Number of 'misdemeanor' should == # of '|' - 1
         df['known_misdemeanor'] = [(1 if (severity.count('|') - severity.count('misdemeanor') == -1) else 0) for severity in df['severity']]
         
         # Concatenate to get unique ID string for each booking
@@ -149,6 +154,7 @@ for county, start_string in zip(counties, start_strings):
             booking_id_string = booking_id_string[0].str.cat(booking_id_string[1:], sep=' | ')
         df['booking_id_string'] = booking_id_string
 
+        # For each row in file...
         for j in range(df.shape[0]):
             row = df.iloc[j]
             try:
@@ -163,9 +169,9 @@ for county, start_string in zip(counties, start_strings):
         # update Glynn bookings
         if county == 'glynn' and i > 0: 
             old_ts = fname_ts[i-1][1]
-            release_timestamp = old_ts + (ts - old_ts)/2
-            release_timestamp = release_timestamp.strftime('%Y-%m-%d %H:%M:%S EST')
-            update_glynn_rel_ts(df, release_timestamp)
+            rel_ts = old_ts + (ts - old_ts)/2
+            rel_ts = rel_ts.strftime('%Y-%m-%d %H:%M:%S est')
+            update_glynn_rel_ts(df, rel_ts)
 
 conn.commit()
 
