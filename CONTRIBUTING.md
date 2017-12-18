@@ -44,7 +44,7 @@ inmate_lastname | Last name
 inmate_firstname | First name
 inmate_middlename | Middle name or initial, if any
 inmate_sex	| ```'m'/'f'```
-inmate_race	| ```'black'/'white'/'hispanic'/'asian'/'middle-eastern'/'native-american'/'pacific-islander'```. Although someone's race/ethnicity is more complicated (and really shouldn't matter anyway) we will stick to the basic categories the counties designated. If you see a category not on this list, please inform us so we can add to the list.
+inmate_race	| ```'black'/'white'/'hispanic'/'asian'/'middle-eastern'/'native-american'/'pacific-islander'/'multiracial'/'other'```. Although someone's race/ethnicity is more complicated (and really shouldn't matter anyway) we will stick to the basic categories the counties designated. If you see a category not on this list, please inform us so we can add to the list.
 inmate_age | Age in years. If ```inmate_dob``` only provides the year, just subtract birth year from current year.
 inmate_dob	| Date of birth, [Postgres timestamp format](https://www.postgresql.org/docs/9.1/static/datatype-datetime.html), ```'2004-10-19'```. Some counties only post year of birth.
 inmate_address | Address, including if they list no address. Useful later to see where arrests are clustering. Just insert how the county lists it, ETL code can parse it into standard format later.

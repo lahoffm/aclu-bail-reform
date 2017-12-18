@@ -1,3 +1,11 @@
+# To run
+Uses Python 3.6.3
+`pip install -r requirements.txt`
+`python etl_main_min_database.py` creates minimal SQLite database.  
+
+Script is intended to create entire database from scratch, thus 
+running 2x in a row will error because database file already exists.  
+
 # Database Specification
 
 ## Philosophy
@@ -17,7 +25,6 @@ booking_id_string | Concatenated CSV fields to make unique identifiers for each 
 county_name | Same as CSV
 booking_timestamp | Same as CSV
 release_timestamp | Same as CSV - both for known releases and if inmate just dropped off roster one day.
-on_roster | **`1`** if inmate was on roster as of the most recently scraped CSV, else **`0`** or `NULL`. *Only used for counties where we must guess release dates based on when they dropped off roster. For other counties it's* `NULL`
 known_misdemeanor | **`1`** if all charges' severity is `misdemeanor`. **`0`** if at least one charge's severity is unknown, i.e. blank in CSV. *Note felonies are deliberately excluded from minimal database.*
 
 ## "Full Database" table specification

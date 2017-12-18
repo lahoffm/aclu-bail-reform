@@ -17,7 +17,7 @@ def check_charges_and_severity_count(row, charges, severity):
         log_print_red("Row " + row + " [charges & severity]: charges and severity should be the same count")
 
 def validate_data(row, field, data, county):
-  
+
   # To keep track of data format error status of file (True = has no error; False = has error)
   error_status = True
 
@@ -26,6 +26,7 @@ def validate_data(row, field, data, county):
   if field == 'county_name':
     if data.lower() != county:
       print_message(row, field, data, "be '" + county + "'")
+      error_status = False
 
   # For all other fields besides county_name, ignore empty cells
   if data.strip() != '':
@@ -42,6 +43,13 @@ def validate_data(row, field, data, county):
     if field == 'url':
       if not re.match(r'^(http://|https://)\w+', data):
         print_message(row, field, data, 'be http://<address> or https://<address>')
+        error_status = False
+
+    # INMATE_ID
+    # Check if data contains letters, numbers, apostrophe and spaces only
+    if field in ('inmate_id'):
+      if not re.match(r'^[A-z0-9\' ]+$', data):
+        print_message(row, field, data, 'contain letters, numbers, apostrophe and spaces only')
         error_status = False
 
     # INMATE_LASTNAME, INMATE_FIRSTNAME, INMATE_MIDDLENAME
@@ -95,7 +103,7 @@ def validate_data(row, field, data, county):
         print_message(row, field, data, 'have $ before bond amount')
         error_status = False
 
-    # DAYS_JAILES
+    # DAYS_JAILED
     # Check if data is an integer
     if field == 'days_jailed':
       if not re.match(r'^[0-9]+$', data):
@@ -114,13 +122,6 @@ def validate_data(row, field, data, county):
     if field in ('booking_timestamp', 'release_timestamp'):
       if not re.match(r'(^[1-2]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])\s([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\sEST|^[1-2]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]))$', data):
         print_message(row, field, data, 'be YYYY-MM-DD hh:mm:ss EST or YYYY-MM-DD if no time is provided')   
-        error_status = False
-
-    # INMATE_ID
-    # Check if data contains letters, numbers, apostrophe and spaces only
-    if field in ('inmate_id'):
-      if not re.match(r'^[A-z0-9\' ]+$', data):
-        print_message(row, field, data, 'contain letters, numbers, apostrophe and spaces only')
         error_status = False
 
     # INMATE_ADDRESS, PROCESSING_NUMBERS, AGENCY, FACILITY, CHARGES, CURRENT_STATUS
@@ -155,7 +156,7 @@ def validate_file(directory, file):
       # Check file header is in same order as fieldnames_reference (DOES NOT check for switched data; e.g. If charges and severity data are switched but header is in correct order, file will pass this test. Misplaced data will be caught in data validation process.)
       if header != fieldnames_reference:
         log_print('Field names do not match the required format. Order should be:\n{}'.format(('\n').join(fieldnames_reference)))
-        # return
+
       # Get county of current file from file name
       county = file.split('_')[0]
 
