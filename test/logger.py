@@ -4,7 +4,7 @@ from colorama import init
 
 init(autoreset=True)
 
-logging.basicConfig(filename=datetime.now().strftime('logs/validator_log_%Y_%m_%d.log'), level=logging.INFO, format='%(message)s', filemode='w')
+logging.basicConfig(filename=datetime.now().strftime('logs/validator-log_%Y-%m-%d_%H-%M-%S.log'), level=logging.INFO, format='%(message)s', filemode='w')
 
 def log_print(message):
   print(message)

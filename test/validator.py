@@ -15,6 +15,8 @@ def check_charges_and_severity_count(row, charges, severity):
         assert len(charges.split('|')) == len(severity.split('|'))
       except AssertionError:
         log_print_red("Row " + row + " [charges & severity]: charges and severity should be the same count")
+        return False # error
+  return True # no error
 
 def validate_data(row, field, data, county):
 
@@ -69,8 +71,8 @@ def validate_data(row, field, data, county):
     # INMATE_RACE
     # Check if data is one of black, white, hispanic, asian, middle-easter, native-american, pacific-islander, multiracial, other
     if field == 'inmate_race':
-      if not re.match(r'^(black|white|hispanic|asian|middle-eastern|native-american|pacific-islander|multiracial|other)$', data, re.IGNORECASE):
-        print_message(row, field, data, 'be black, white, hispanic, asian, middle-eastern, native-american, pacific-islander, multiracial, or other')
+      if not re.match(r'^(black|white|hispanic|asian|middle-eastern|native-american|pacific-islander|indian|multiracial|other)$', data, re.IGNORECASE):
+        print_message(row, field, data, 'be black, white, hispanic, asian, middle-eastern, native-american, pacific-islander, indian, multiracial, or other')
         error_status = False
 
     # INMATE_AGE
@@ -98,7 +100,8 @@ def validate_data(row, field, data, county):
 
     # BOND_AMOUNT
     # Check if floats in data is preceded by $
-    if field == 'bond_amount':
+    # Athens-Clarke county doesn't always have bond amount listed in dollars
+    if field == 'bond_amount' and county not in 'athens-clarke':
       if re.search(r'\d+(\.\d{2})?', data) and not re.search(r'\$\d+(\.\d{2})?', data):
         print_message(row, field, data, 'have $ before bond amount')
         error_status = False
@@ -119,20 +122,20 @@ def validate_data(row, field, data, county):
 
     # BOOKING_TIMESTAMP, RELEASE_TIMESTAMP
     # Check if data is in 'YYYY-MM-DD hh:mm:ss EST' or 'YYYY-MM-DD' format (some counties don't provide time)
-    if field in ('booking_timestamp', 'release_timestamp'):
+    if field == 'booking_timestamp':
       if not re.match(r'(^[1-2]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])\s([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\sEST|^[1-2]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]))$', data):
         print_message(row, field, data, 'be YYYY-MM-DD hh:mm:ss EST or YYYY-MM-DD if no time is provided')   
         error_status = False
 
-    # INMATE_ADDRESS, PROCESSING_NUMBERS, AGENCY, FACILITY, CHARGES, CURRENT_STATUS
-    # Check if data contains the following invalid characters: ~ + \ @ ^ { } " ` = ! ?
-    # (Will have to adjust character set according to tests)
-    if field in ('inmate_address', 'processing_numbers', 'agency', 'facility',  'charges', 'current_status'):
-      invalidCharacters = ['~', '+', '\\', '@', '^', '{', '"', '`', '}', '=', '!', '?']
-      if any(char in data for char in invalidCharacters):
-        print_message(row, field, data, 'not contain the following invalid characters: ~ + [ ] \ @ ^ { } % " * ` = ! ; ? $')
-        error_status = False
+    # Athens-Clarke county can have multiple release timestamps so don't check those like other counties        
+    if field == 'release_timestamp' and county != 'athens-clarke':
+      if not re.match(r'(^[1-2]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])\s([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\sEST|^[1-2]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]))$', data):
+        print_message(row, field, data, 'be YYYY-MM-DD hh:mm:ss EST or YYYY-MM-DD if no time is provided')   
+        error_status = False        
 
+    # INMATE_ADDRESS, PROCESSING_NUMBERS, AGENCY, FACILITY, CHARGES, CURRENT_STATUS
+    # Nothing to check, we don't know the format these should take it depends on the county
+    
   # Return error status of current file
   return error_status 
 
@@ -156,6 +159,7 @@ def validate_file(directory, file):
       # Check file header is in same order as fieldnames_reference (DOES NOT check for switched data; e.g. If charges and severity data are switched but header is in correct order, file will pass this test. Misplaced data will be caught in data validation process.)
       if header != fieldnames_reference:
         log_print('Field names do not match the required format. Order should be:\n{}'.format(('\n').join(fieldnames_reference)))
+        passedValidation = False
 
       # Get county of current file from file name
       county = file.split('_')[0]
@@ -174,7 +178,10 @@ def validate_file(directory, file):
             validate_data(row_num, field, row[field], county)
 
         # Check if charges and severity have the same count
-        check_charges_and_severity_count(row_num, row['charges'], row['severity'])
+        if passedValidation:
+            passedValidation = check_charges_and_severity_count(row_num, row['charges'], row['severity'])
+        else:
+            check_charges_and_severity_count(row_num, row['charges'], row['severity'])
     
     # If passedValidation is still True after validation check, print success message
     if passedValidation:
