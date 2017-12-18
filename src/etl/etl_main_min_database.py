@@ -152,6 +152,10 @@ for county, start_string in zip(counties, start_strings):
         # Get rid of felonies
         df = df[~df['severity'].str.contains('felony')] 
 
+        if df.shape[0] == 0:
+            print('        Zero rows in file after deleting felonies, skipping')
+            continue
+
         # Make booking_timestamp 'YYYY-MM-DD 00:00:00 est' if booking_timestamp is 'YYYY-MM-DD'
         df['booking_timestamp'] = [(booking_timestamp if (':' in booking_timestamp or booking_timestamp == '') else booking_timestamp + ' 00:00:00 est') for booking_timestamp in df['booking_timestamp']]
 
