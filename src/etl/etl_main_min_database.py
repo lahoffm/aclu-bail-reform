@@ -18,7 +18,7 @@ from init_min_database import init_min_database
 # Insert data into bookings database
 def insert_booking(booking):
     conn.execute('''
-        INSERT INTO bookings (booking_id_string, county_name, booking_timestamp, release_timestamp, known_misdemeanor)
+        INSERT INTO bookings (booking_id_string, county_name, booking_timestamp, release_timestamp, severity_type)
         VALUES (?, ?, ?, ?, ?);
     ''',
     [
@@ -26,7 +26,7 @@ def insert_booking(booking):
         booking['county_name'],
         booking['booking_timestamp'],
         booking['release_timestamp'],
-        int(booking['known_misdemeanor'])
+        booking['severity_type']
     ])
 
 # Update release_timestamp for non-Glynn bookings in database
@@ -149,13 +149,6 @@ for county, start_string in zip(counties, start_strings):
         df.fillna('', inplace=True)
         df = df.apply(lambda x: x.astype(str).str.lower()) # affects URLs and timestamp 'EST' to 'est' too! If change this also change 'est' where set below for Glynn
         
-        # Get rid of felonies
-        df = df[~df['severity'].str.contains('felony')] 
-
-        if df.shape[0] == 0:
-            print('        Zero rows in file after deleting felonies, skipping')
-            continue
-
         # Make booking_timestamp 'YYYY-MM-DD 00:00:00 est' if booking_timestamp is 'YYYY-MM-DD'
         df['booking_timestamp'] = [(booking_timestamp if (':' in booking_timestamp or booking_timestamp == '') else booking_timestamp + ' 00:00:00 est') for booking_timestamp in df['booking_timestamp']]
 
@@ -167,10 +160,11 @@ for county, start_string in zip(counties, start_strings):
         if county == 'athens-clarke':
             df['release_timestamp'] = [(release_timestamp.split(' | ')[0] if (release_timestamp.count(' | ') - release_timestamp.count(release_timestamp.split(' | ')[0]) == -1) else '') for release_timestamp in df['release_timestamp']]
         
-        # If severity is 'misdemeanor' for every single charge, known_misdemeanor is 1, else 0
-        # Number of 'misdemeanor' should == # of '|' - 1
-        df['known_misdemeanor'] = [(1 if (severity.count('|') - severity.count('misdemeanor') == -1) else 0) for severity in df['severity']]
-        
+        # If severity is 'misdemeanor' for every single charge, severity_type is 'known misdemeanor'
+        # If there is at least one 'felony' (including charges that are 'misdemeanor&felony') severity_type is 'known felony'
+        # All other situations have at least one blank severity and have 'unknown' severity_type
+        df['severity_type'] = [('known felony' if ('felony' in severity) else ('known misdemeanor' if (severity.count('|') - severity.count('misdemeanor') == -1) else 'unknown')) for severity in df['severity']]
+       
         # Concatenate to get unique ID string for each booking
         booking_id_string = df.loc[:,booking_id_fields]
         if len(booking_id_fields) > 1:

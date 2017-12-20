@@ -25,7 +25,7 @@ booking_id_string | Concatenated CSV fields to make unique identifiers for each 
 county_name | Same as CSV
 booking_timestamp | Same as CSV
 release_timestamp | Same as CSV - both for known releases and if inmate just dropped off roster one day.
-known_misdemeanor | **`1`** if all charges' severity is `misdemeanor`. **`0`** if at least one charge's severity is unknown, i.e. blank in CSV. *Note felonies are deliberately excluded from minimal database.*
+severity_type | `'known misdemeanor'` if every single charge is a misdemeanor. `'known felony'` if at least one charge is a felony (including `misdemeanor&felony` charges). `'unknown'` if one or more charges have blank severity.
 
 ## "Full Database" table specification
 All timestamps are in [Postgres timestamp format](https://www.postgresql.org/docs/9.1/static/datatype-datetime.html): `'2004-10-19 10:23:54 EST'`

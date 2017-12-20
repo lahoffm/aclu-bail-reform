@@ -28,7 +28,7 @@ def init_min_database(db_dir, sqlite_file):
                 county_name         TEXT NOT NULL,
                 booking_timestamp   TEXT NOT NULL,
                 release_timestamp   TEXT,
-                known_misdemeanor   INTEGER NOT NULL
+                severity_type       TEXT NOT NULL
             );
         """)
     
