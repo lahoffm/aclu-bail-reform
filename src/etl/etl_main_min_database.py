@@ -149,8 +149,8 @@ for county, start_string in zip(counties, start_strings):
         df.fillna('', inplace=True)
         df = df.apply(lambda x: x.astype(str).str.lower()) # affects URLs and timestamp 'EST' to 'est' too! If change this also change 'est' where set below for Glynn
         
-        # Make booking_timestamp 'YYYY-MM-DD 00:00:00 est' if booking_timestamp is 'YYYY-MM-DD'
-        df['booking_timestamp'] = [(booking_timestamp if (':' in booking_timestamp or booking_timestamp == '') else booking_timestamp + ' 00:00:00 est') for booking_timestamp in df['booking_timestamp']]
+        # Make booking_timestamp 'YYYY-MM-DD 12:00:00 est' if booking_timestamp is 'YYYY-MM-DD'
+        df['booking_timestamp'] = [(booking_timestamp if (':' in booking_timestamp or booking_timestamp == '') else booking_timestamp + ' 12:00:00 est') for booking_timestamp in df['booking_timestamp']]
 
         # Make release_timestamp 'YYYY-MM-DD 12:00:00 est' if release_timestamp is 'YYYY-MM-DD'
         df['release_timestamp'] = [(release_timestamp if (':' in release_timestamp or release_timestamp == '') else release_timestamp + ' 12:00:00 est') for release_timestamp in df['release_timestamp']]
