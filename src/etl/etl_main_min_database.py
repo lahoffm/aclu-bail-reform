@@ -149,11 +149,11 @@ for county, start_string in zip(counties, start_strings):
         df.fillna('', inplace=True)
         df = df.apply(lambda x: x.astype(str).str.lower()) # affects URLs and timestamp 'EST' to 'est' too! If change this also change 'est' where set below for Glynn
         
-        # Make booking_timestamp 'YYYY-MM-DD 12:00:00 est' if booking_timestamp is 'YYYY-MM-DD'
-        df['booking_timestamp'] = [(booking_timestamp if (':' in booking_timestamp or booking_timestamp == '') else booking_timestamp + ' 12:00:00 est') for booking_timestamp in df['booking_timestamp']]
+        # Make booking_timestamp 'YYYY-MM-DD 00:00:00 est' if booking_timestamp is 'YYYY-MM-DD'
+        df['booking_timestamp'] = [(booking_timestamp if (':' in booking_timestamp or booking_timestamp == '') else booking_timestamp + ' 00:00:00 est') for booking_timestamp in df['booking_timestamp']]
 
-        # Make release_timestamp 'YYYY-MM-DD 12:00:00 est' if release_timestamp is 'YYYY-MM-DD'
-        df['release_timestamp'] = [(release_timestamp if (':' in release_timestamp or release_timestamp == '') else release_timestamp + ' 12:00:00 est') for release_timestamp in df['release_timestamp']]
+        # Make release_timestamp 'YYYY-MM-DD 00:00:00 est' if release_timestamp is 'YYYY-MM-DD'
+        df['release_timestamp'] = [(release_timestamp if (':' in release_timestamp or release_timestamp == '') else release_timestamp + ' 00:00:00 est') for release_timestamp in df['release_timestamp']]
 
         # For Athens-Clarke county, if there are multiple release timestamps and all release timestamps are the same, release_timestamp is the first timestamp, else ''
         # Release timestamps should be the same if # of ' | ' is 1 less than # of same timestamp occurrences
@@ -184,13 +184,21 @@ for county, start_string in zip(counties, start_strings):
                 continue
 
         # If current county is Glynn and there are more than one Glynn files,
-        # update Glynn bookings with approximate release timestamp halfway between
+        # update Glynn bookings with release timestamp as the day they dropped off roster
+        # 'YYYY-MM-DD 00:00:00 est'
+        #
+        # Originally we did an approximate release timestamp halfway between
         # current file and previous file because they dropped off roster during
-        # that time interval.
+        # that time interval. But this caused inaccurate computation of "days jailed"
+        # in the visualization because we don't know what time they were booked.
+        # For example if they were booked on 11/1/17 (unknown time), released on 11/2/17 at 12 PM
+        # it is unclear whether they spent <24 hours or >24 hours in jail.
+        # So we decided to just default to having release timestamp only say date they
+        # were released to be consistent with the booking timestamp.
         if county == 'glynn' and i > 0: 
             old_ts = fname_ts[i-1][1]
             rel_ts = old_ts + (ts - old_ts)/2
-            rel_ts = rel_ts.strftime('%Y-%m-%d %H:%M:%S est')
+            rel_ts = rel_ts.strftime('%Y-%m-%d 00:00:00 est')
             update_glynn_rel_ts(df, rel_ts)
 
 conn.commit()
