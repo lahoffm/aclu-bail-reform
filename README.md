@@ -4,6 +4,12 @@
 **Webscraping, ETL and visualization of Georgia county jail statistics.**  
 To contribute see [CONTRIBUTING.md](CONTRIBUTING.md)
 
+## Project Results so far
+
+We created [several Tableau worksheets](https://public.tableau.com/profile/lukas.hoffmann#!/vizhome/aclu-bail-reform/ofseveritypercounty) 
+(scroll down to "Metadata") and wrote the [ACLU bail reform report](https://github.com/lahoffm/aclu-bail-reform/blob/master/docs/ACLU%20bail%20reform%20report.pdf) in Jan 2018.
+
+
 ## Project motivation - [PDF](https://github.com/lahoffm/aclu-bail-reform/raw/master/docs/ACLU-Bail-Reform-One-pager.pdf)
 
 Like many aspects of the criminal justice system, the current approach to money bail is extremely problematic from a policy perspective, a legal perspective, and a moral perspective.
