@@ -79,13 +79,12 @@ def get_links_on_page():
 
         try:
             row_links = driver.find_elements_by_css_selector("div.inmpanel > table > tbody > tr > td:first-child > a.poplink")
-            
             row_link_ids = list(map(lambda x: x.get_attribute("id"), row_links))
         except StaleElementReferenceException:
             print("Dom updated, trying to get all link IDs again")
             continue
         break
-
+    print("Found", len(row_link_ids), "links on page")
     return row_link_ids
 
 #Begin Scrapping
@@ -183,14 +182,13 @@ def to_csv(inmate_extracts):
         writer.writerow(columns)
 
         for inmate in inmate_extracts:
-            print(inmate)
             lastname = ""
             firstname = ""
             middlename = ""
             age = ""
 
             try:
-                m = re.search("(\w+),\s(\w+)\s?(\w+)", inmate.full_name)
+                m = re.search("([a-zA-Z\s\-\'\"]+),\s([a-zA-Z\-\'\"]+)\s?([a-zA-Z\-\'\"]+)", inmate.full_name)
                 lastname = m.group(1)
                 firstname = m.group(2)
 
