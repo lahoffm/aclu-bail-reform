@@ -80,13 +80,17 @@ def muscogee_to_csv(data, isIntake, url, notes = ""):
         for entry in data:
             #Maybe put this part in its own function
             name = name_seperation(entry[2])
+            try:
+                sex = entry[5].lower()
+            except TypeError:
+                sex = ''
             writer.writerow({'county_name': 'Muscogee',
                              'timestamp': postgre_timestamp(timezone = True).replace("_"," "),
                              'url': url,
                              'inmate_lastname': name[2],
                              'inmate_firstname': name[0],
                              'inmate_middlename': name[1],
-                             'inmate_sex': entry[5].lower(),
+                             'inmate_sex': sex,
                              'inmate_race': parse_race(entry[4]),
                              'inmate_age': age(entry[3]),
                              'inmate_dob': entry[3],

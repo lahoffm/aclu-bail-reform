@@ -181,6 +181,7 @@ class ScraperAthensClarke(object):
         # Set charge severity - ignoring "Local ordinance" because it's rare
         df_main.fillna('', inplace=True) # all columns from this point forward probably have NaN so fill with ''
         df_main['CRIME TYPE'] = df_main['CRIME TYPE'].str.lower().str.replace('local ordinance','')
+        df_main['CRIME TYPE'] = df_main['CRIME TYPE'].str.lower().str.replace('civil','')
         assert np.isin(df_main['CRIME TYPE'].unique(), np.array(['misdemeanor','felony',''])).all(), 'Invalid misdemeanor/felony format.'                                       
         self.df['severity'] = df_main['CRIME TYPE']
         
