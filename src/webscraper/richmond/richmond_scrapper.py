@@ -118,7 +118,7 @@ def extract_inmate_info_from_page(row_link_id):
     #Grab info
     for attempt in range(0, 3):
         try:
-            WebDriverWait(driver, 10).until(EC.visibility_of(driver.find_element_by_id("mpeDetail_foregroundElement")))
+            WebDriverWait(driver, 30).until(EC.visibility_of(driver.find_element_by_id("mpeDetail_foregroundElement")))
 
             booking_number = driver.find_element_by_id("lblBKNo").get_attribute("innerText") 
             full_name = driver.find_element_by_id("InmateData1_lblFullName").get_attribute("innerText")
