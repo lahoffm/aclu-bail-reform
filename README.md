@@ -2,13 +2,14 @@
 
 # ACLU bail reform project
 **Webscraping, ETL and visualization of Georgia county jail statistics.**  
-To contribute see [CONTRIBUTING.md](CONTRIBUTING.md)
 
-## Project Results so far
+## Update
+This project is no longer under active development. [Email the organizer](mailto:lahoffm@gmail.com?Subject=Access%20ACLU%20bail20%reform%20data) to get access to our raw data for research or activism.
+
+## Project Results
 
 We created [several Tableau worksheets](https://public.tableau.com/profile/lukas.hoffmann#!/vizhome/aclu-bail-reform/ofseveritypercounty) 
 (scroll down to "Metadata") and wrote the [ACLU bail reform report](https://github.com/lahoffm/aclu-bail-reform/blob/master/docs/ACLU%20bail%20reform%20report.pdf) in Jan 2018.
-
 
 ## Project motivation - [PDF](https://github.com/lahoffm/aclu-bail-reform/raw/master/docs/ACLU-Bail-Reform-One-pager.pdf)
 
