@@ -1,9 +1,5 @@
-# How you can contribute
-* Next steps are to be determined.
-* Whatever the next steps are, we will want data from more counties. So we need more webscrapers. If you want to write one please comment in the relevant [Issue](https://github.com/lahoffm/aclu-bail-reform/issues).
-* County jail info [here](https://github.com/lahoffm/aclu-bail-reform/blob/master/docs/County-jail-summaries.xlsx)
-* Our Slack channel is **#aclu-bail-reform** at [codeforatlanta.slack.com](https://codeforatlanta.slack.com)
-* We are using **Python 3.6.3**.  
+## Update
+This project is no longer under active development. [Email the organizer](mailto:lahoffm@gmail.com?Subject=Access%20ACLU%20bail%20reform%20data) to access our raw data for research or activism.
 
 # CSV file format for webscrapers
 
