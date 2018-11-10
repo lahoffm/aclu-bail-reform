@@ -4,7 +4,7 @@
 **Webscraping, ETL and visualization of Georgia county jail statistics.**  
 
 ## Update
-This project is no longer under active development. [Email the organizer](mailto:lahoffm@gmail.com?Subject=Access%20ACLU%20bail20%reform%20data) to get access to our raw data for research or activism.
+This project is no longer under active development. [Email the organizer](mailto:lahoffm@gmail.com?Subject=Access%20ACLU%20bail%20reform%20data) to access our raw data for research or activism.
 
 ## Project Results
 
